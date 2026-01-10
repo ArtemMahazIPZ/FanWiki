@@ -1,0 +1,11 @@
+E:\FanWiki\src\FanWiki.Domain\bin\Debug\net10.0\FanWiki.Domain.deps.json
+E:\FanWiki\src\FanWiki.Domain\bin\Debug\net10.0\FanWiki.Domain.dll
+E:\FanWiki\src\FanWiki.Domain\bin\Debug\net10.0\FanWiki.Domain.pdb
+E:\FanWiki\src\FanWiki.Domain\obj\Debug\net10.0\FanWiki.Domain.GeneratedMSBuildEditorConfig.editorconfig
+E:\FanWiki\src\FanWiki.Domain\obj\Debug\net10.0\FanWiki.Domain.AssemblyInfoInputs.cache
+E:\FanWiki\src\FanWiki.Domain\obj\Debug\net10.0\FanWiki.Domain.AssemblyInfo.cs
+E:\FanWiki\src\FanWiki.Domain\obj\Debug\net10.0\FanWiki.Domain.csproj.CoreCompileInputs.cache
+E:\FanWiki\src\FanWiki.Domain\obj\Debug\net10.0\FanWiki.Domain.dll
+E:\FanWiki\src\FanWiki.Domain\obj\Debug\net10.0\refint\FanWiki.Domain.dll
+E:\FanWiki\src\FanWiki.Domain\obj\Debug\net10.0\FanWiki.Domain.pdb
+E:\FanWiki\src\FanWiki.Domain\obj\Debug\net10.0\ref\FanWiki.Domain.dll

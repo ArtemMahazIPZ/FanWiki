@@ -1,0 +1,15 @@
+E:\FanWiki\src\FanWiki.Application\bin\Debug\net10.0\FanWiki.Application.deps.json
+E:\FanWiki\src\FanWiki.Application\bin\Debug\net10.0\FanWiki.Application.dll
+E:\FanWiki\src\FanWiki.Application\bin\Debug\net10.0\FanWiki.Application.pdb
+E:\FanWiki\src\FanWiki.Application\bin\Debug\net10.0\FanWiki.Domain.dll
+E:\FanWiki\src\FanWiki.Application\bin\Debug\net10.0\FanWiki.Domain.pdb
+E:\FanWiki\src\FanWiki.Application\obj\Debug\net10.0\FanWiki.Application.csproj.AssemblyReference.cache
+E:\FanWiki\src\FanWiki.Application\obj\Debug\net10.0\FanWiki.Application.GeneratedMSBuildEditorConfig.editorconfig
+E:\FanWiki\src\FanWiki.Application\obj\Debug\net10.0\FanWiki.Application.AssemblyInfoInputs.cache
+E:\FanWiki\src\FanWiki.Application\obj\Debug\net10.0\FanWiki.Application.AssemblyInfo.cs
+E:\FanWiki\src\FanWiki.Application\obj\Debug\net10.0\FanWiki.Application.csproj.CoreCompileInputs.cache
+E:\FanWiki\src\FanWiki.Application\obj\Debug\net10.0\FanWiki..64BB15FE.Up2Date
+E:\FanWiki\src\FanWiki.Application\obj\Debug\net10.0\FanWiki.Application.dll
+E:\FanWiki\src\FanWiki.Application\obj\Debug\net10.0\refint\FanWiki.Application.dll
+E:\FanWiki\src\FanWiki.Application\obj\Debug\net10.0\FanWiki.Application.pdb
+E:\FanWiki\src\FanWiki.Application\obj\Debug\net10.0\ref\FanWiki.Application.dll

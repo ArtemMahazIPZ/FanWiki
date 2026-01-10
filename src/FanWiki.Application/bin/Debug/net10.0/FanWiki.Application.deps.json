@@ -1,0 +1,39 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "FanWiki.Application/1.0.0": {
+        "dependencies": {
+          "FanWiki.Domain": "1.0.0"
+        },
+        "runtime": {
+          "FanWiki.Application.dll": {}
+        }
+      },
+      "FanWiki.Domain/1.0.0": {
+        "runtime": {
+          "FanWiki.Domain.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "FanWiki.Application/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "FanWiki.Domain/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}
