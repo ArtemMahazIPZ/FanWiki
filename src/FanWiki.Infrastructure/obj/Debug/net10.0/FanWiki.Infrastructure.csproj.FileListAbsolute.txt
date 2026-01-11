@@ -17,3 +17,4 @@ E:\FanWiki\src\FanWiki.Infrastructure\obj\Debug\net10.0\refint\FanWiki.Infrastru
 E:\FanWiki\src\FanWiki.Infrastructure\obj\Debug\net10.0\FanWiki.Infrastructure.pdb
 E:\FanWiki\src\FanWiki.Infrastructure\obj\Debug\net10.0\FanWiki.Infrastructure.genruntimeconfig.cache
 E:\FanWiki\src\FanWiki.Infrastructure\obj\Debug\net10.0\ref\FanWiki.Infrastructure.dll
+E:\FanWiki\src\FanWiki.Infrastructure\obj\Debug\net10.0\FanWiki.Infrastructure.sourcelink.json

@@ -187,3 +187,4 @@ E:\FanWiki\src\FanWiki.API\obj\Debug\net10.0\refint\FanWiki.API.dll
 E:\FanWiki\src\FanWiki.API\obj\Debug\net10.0\FanWiki.API.pdb
 E:\FanWiki\src\FanWiki.API\obj\Debug\net10.0\FanWiki.API.genruntimeconfig.cache
 E:\FanWiki\src\FanWiki.API\obj\Debug\net10.0\ref\FanWiki.API.dll
+E:\FanWiki\src\FanWiki.API\obj\Debug\net10.0\FanWiki.API.sourcelink.json
