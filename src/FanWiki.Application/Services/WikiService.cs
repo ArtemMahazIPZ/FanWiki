@@ -21,16 +21,44 @@ public class WikiService(IArticleRepository repository) : IWikiService
             translation.Title, 
             translation.Content, 
             translation.LanguageCode,
+            article.ImageUrl,              
+            article.Category.ToString(),   
             article.CreatedAt
         );
     }
+    public async Task<List<ArticleDto>> GetAllArticlesAsync(string languageCode, CancellationToken ct)
+    {
+        var articles = await repository.GetAllAsync(ct);
+        var dtos = new List<ArticleDto>();
 
-    public async Task<Guid> CreateArticleAsync(CreateArticleDto dto, CancellationToken ct)
+        foreach (var article in articles)
+        {
+            var translation = article.Translations.FirstOrDefault(t => t.LanguageCode == languageCode) 
+                              ?? article.Translations.FirstOrDefault();
+
+            if (translation == null) continue;
+
+            dtos.Add(new ArticleDto(
+                article.Slug, 
+                translation.Title, 
+                translation.Content, 
+                translation.LanguageCode,
+                article.ImageUrl,
+                article.Category.ToString(),
+                article.CreatedAt
+            ));
+        }
+
+        return dtos;
+    }
+    public async Task<Guid> CreateArticleAsync(CreateArticleDto dto, string? imagePath, CancellationToken ct)
     {
         var article = new Article
         {
             Slug = dto.Slug,
             IsPublished = true,
+            ImageUrl = imagePath,   
+            Category = dto.Category, 
             Translations =
             [
                 new ArticleTranslation
