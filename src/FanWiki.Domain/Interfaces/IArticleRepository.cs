@@ -9,4 +9,6 @@ public interface IArticleRepository
     Task SaveChangesAsync(CancellationToken ct);
     
     Task<List<Article>> GetAllAsync(CancellationToken ct);
+    Task DeleteAsync(Article article, CancellationToken ct);
+    Task<Article?> GetByIdAsync(Guid id, CancellationToken ct);
 }

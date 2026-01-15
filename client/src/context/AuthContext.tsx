@@ -19,13 +19,11 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<User | null>(null);
 
-    // Функція декодування токена
     const decodeUser = (token: string): User | null => {
         try {
             const decoded: any = jwtDecode(token);
             return {
-                username: decoded.sub || decoded.name, // sub - стандартний claim для ID/Username
-                // У бекенді ми писали: new("nickname", ...)
+                username: decoded.sub || decoded.name,
                 nickname: decoded.nickname || decoded.name || "User",
                 role: decoded.role || decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] || "User"
             };
@@ -34,7 +32,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
     };
 
-    // При завантаженні сторінки перевіряємо LocalStorage
     useEffect(() => {
         const token = localStorage.getItem('token');
         if (token) {

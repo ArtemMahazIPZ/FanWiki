@@ -3,7 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using FanWiki.Application.DTOs;
 using FanWiki.Domain.Entities;
-using FanWiki.Infrastructure.Services; // <-- Важливо: щоб бачити IEmailSender
+using FanWiki.Infrastructure.Services; 
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -15,10 +15,9 @@ namespace FanWiki.API.Controllers;
 public class AuthController(
     UserManager<ApplicationUser> userManager,
     SignInManager<ApplicationUser> signInManager,
-    IEmailSender emailSender // <-- Додали новий сервіс в конструктор
+    IEmailSender emailSender 
     ) : ControllerBase
 {
-    // 1. РЕЄСТРАЦІЯ
     [HttpPost("register")]
     public async Task<IActionResult> Register(RegisterDto dto)
     {
@@ -40,7 +39,6 @@ public class AuthController(
         return Ok(new { message = "Registration successful" });
     }
 
-    // 2. ВХІД
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginDto dto)
     {
@@ -61,46 +59,38 @@ public class AuthController(
         });
     }
 
-    // 3. ЗАБУВ ПАРОЛЬ (Генерація коду)
     [HttpPost("forgot-password")]
     public async Task<IActionResult> ForgotPassword(ForgotPasswordDto dto)
     {
         var user = await userManager.FindByEmailAsync(dto.Email);
         
-        // Безпека: навіть якщо юзера немає, ми не кажемо про це прямо, 
-        // щоб хакери не перевіряли базу email-адрес.
+        
         if (user == null) 
             return Ok(new { message = "If your email exists in our system, we have sent a reset code." });
 
-        // Генеруємо спец-код для скидання
         var token = await userManager.GeneratePasswordResetTokenAsync(user);
 
-        // "Відправляємо" лист (дивись в консоль сервера!)
         await emailSender.SendEmailAsync(dto.Email, "Reset Password Token", $"Your reset code is: {token}");
 
         return Ok(new { message = "Check your email (console) for the reset code." });
     }
 
-    // 4. СКИНУТИ ПАРОЛЬ (Встановлення нового)
     [HttpPost("reset-password")]
     public async Task<IActionResult> ResetPassword(ResetPasswordDto dto)
     {
         var user = await userManager.FindByEmailAsync(dto.Email);
         if (user == null) return BadRequest("Invalid request");
 
-        // Спроба змінити пароль за допомогою токена
         var result = await userManager.ResetPasswordAsync(user, dto.Token, dto.NewPassword);
 
         if (!result.Succeeded)
         {
-            // Повертаємо помилки (наприклад, "Невірний токен" або "Пароль надто простий")
             return BadRequest(result.Errors);
         }
 
         return Ok(new { message = "Password reset successful. You can now login with your new password." });
     }
     
-    // --- Допоміжний метод генерації JWT ---
     private string GenerateJwtToken(ApplicationUser user, IList<string> roles)
     {
         var claims = new List<Claim>
