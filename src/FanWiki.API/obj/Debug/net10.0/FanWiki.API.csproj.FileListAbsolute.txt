@@ -188,3 +188,12 @@ E:\FanWiki\src\FanWiki.API\obj\Debug\net10.0\FanWiki.API.pdb
 E:\FanWiki\src\FanWiki.API\obj\Debug\net10.0\FanWiki.API.genruntimeconfig.cache
 E:\FanWiki\src\FanWiki.API\obj\Debug\net10.0\ref\FanWiki.API.dll
 E:\FanWiki\src\FanWiki.API\obj\Debug\net10.0\FanWiki.API.sourcelink.json
+E:\FanWiki\src\FanWiki.API\bin\Debug\net10.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+E:\FanWiki\src\FanWiki.API\bin\Debug\net10.0\Microsoft.IdentityModel.Abstractions.dll
+E:\FanWiki\src\FanWiki.API\bin\Debug\net10.0\Microsoft.IdentityModel.JsonWebTokens.dll
+E:\FanWiki\src\FanWiki.API\bin\Debug\net10.0\Microsoft.IdentityModel.Logging.dll
+E:\FanWiki\src\FanWiki.API\bin\Debug\net10.0\Microsoft.IdentityModel.Protocols.dll
+E:\FanWiki\src\FanWiki.API\bin\Debug\net10.0\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+E:\FanWiki\src\FanWiki.API\bin\Debug\net10.0\Microsoft.IdentityModel.Tokens.dll
+E:\FanWiki\src\FanWiki.API\bin\Debug\net10.0\System.IdentityModel.Tokens.Jwt.dll
+E:\FanWiki\src\FanWiki.API\bin\Debug\net10.0\FanWiki.API.staticwebassets.runtime.json

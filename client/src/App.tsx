@@ -1,21 +1,26 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'; // 1. Прибрали Navigate
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ArticlePage } from './features/wiki/ArticlePage';
-import { HomePage } from './features/wiki/HomePage'; // 2. Додали імпорт HomePage
+import { HomePage } from './features/wiki/HomePage';
+import { RegisterPage } from './features/auth/RegisterPage';
+import { LoginPage } from './features/auth/LoginPage';
+import { Header } from './components/Header';
+import {ForgotPasswordPage} from "./features/auth/ForgotPasswordPage.tsx";
+import {ResetPasswordPage} from "./features/auth/ResetPasswordPage.tsx";
 
 function App() {
     return (
         <BrowserRouter>
             <div className="min-h-screen bg-slate-950 text-slate-200 selection:bg-emerald-500/30">
-                <nav className="sticky top-0 z-50 p-4 border-b border-slate-800 bg-slate-900/80 backdrop-blur-md flex items-center justify-between">
-                    <div className="flex gap-4 items-center">
-                        <span className="font-bold text-xl text-emerald-500 tracking-tight">FanWiki</span>
-                        <a href="/" className="text-sm font-medium text-slate-300 hover:text-white transition">Головна</a>
-                    </div>
-                </nav>
+
+                <Header />
 
                 <Routes>
                     <Route path="/" element={<HomePage />} />
                     <Route path="/wiki/:slug" element={<ArticlePage />} />
+                    <Route path="/register" element={<RegisterPage />} />
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                    <Route path="/reset-password" element={<ResetPasswordPage />} />
                 </Routes>
             </div>
         </BrowserRouter>
