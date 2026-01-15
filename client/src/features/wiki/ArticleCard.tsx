@@ -6,7 +6,6 @@ interface ArticleCardProps {
 }
 
 export const ArticleCard = ({ article }: ArticleCardProps) => {
-    // Формуємо повний URL до картинки (якщо вона є)
     const imageUrl = article.imageUrl
         ? `http://localhost:5122${article.imageUrl}`
         : null;
@@ -15,7 +14,6 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
         <Link to={`/wiki/${article.slug}`} className="group block h-full">
             <div className="bg-slate-800 rounded-xl overflow-hidden shadow-lg border border-slate-700 hover:border-emerald-500/50 hover:shadow-emerald-500/20 transition duration-300 h-full flex flex-col">
 
-                {/* Верхня частина: Картинка */}
                 <div className="h-48 bg-slate-900 relative overflow-hidden">
                     {imageUrl ? (
                         <img
@@ -24,19 +22,16 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
                             className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
                         />
                     ) : (
-                        // Заглушка, якщо картинки немає
                         <div className="w-full h-full flex items-center justify-center text-slate-600 bg-slate-900">
                             <span className="text-4xl">📷</span>
                         </div>
                     )}
 
-                    {/* Бейдж категорії */}
                     <span className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm text-emerald-400 text-xs font-bold px-2 py-1 rounded uppercase tracking-wider border border-slate-600">
                         {article.category}
                     </span>
                 </div>
 
-                {/* Нижня частина: Текст */}
                 <div className="p-5 flex-1 flex flex-col">
                     <h3 className="text-xl font-bold text-slate-100 group-hover:text-emerald-400 transition mb-2">
                         {article.title}

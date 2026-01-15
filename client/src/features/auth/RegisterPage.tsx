@@ -55,7 +55,6 @@ export const RegisterPage = () => {
                     onChange={e => setFormData({...formData, nickname: e.target.value})}
                 />
 
-                {/* Блок з паролем і генератором */}
                 <div className="flex gap-2">
                     <input
                         className="w-full bg-slate-800 p-3 rounded text-white border border-slate-700"

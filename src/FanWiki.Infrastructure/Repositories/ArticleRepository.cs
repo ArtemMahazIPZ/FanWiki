@@ -24,6 +24,13 @@ public class ArticleRepository(AppDbContext context) : IArticleRepository
             .ToListAsync(ct);
     }
 
+    public async Task<Article?> GetByIdAsync(Guid id, CancellationToken ct)
+    {
+        return await context.Articles
+            .Include(a => a.Translations) 
+            .FirstOrDefaultAsync(a => a.Id == id, ct);
+    }
+
     public async Task AddAsync(Article article, CancellationToken ct)
     {
         await context.Articles.AddAsync(article, ct);
@@ -32,5 +39,11 @@ public class ArticleRepository(AppDbContext context) : IArticleRepository
     public async Task SaveChangesAsync(CancellationToken ct)
     {
         await context.SaveChangesAsync(ct);
+    }
+    
+    public Task DeleteAsync(Article article, CancellationToken ct)
+    {
+        context.Articles.Remove(article);
+        return Task.CompletedTask;
     }
 }

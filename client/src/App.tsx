@@ -6,6 +6,8 @@ import { LoginPage } from './features/auth/LoginPage';
 import { Header } from './components/Header';
 import {ForgotPasswordPage} from "./features/auth/ForgotPasswordPage.tsx";
 import {ResetPasswordPage} from "./features/auth/ResetPasswordPage.tsx";
+import {AdminDashboard} from "./features/admin/AdminDashboard.tsx";
+import {ArticleEditor} from "./features/admin/ArticleEditor.tsx";
 
 function App() {
     return (
@@ -21,6 +23,9 @@ function App() {
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                     <Route path="/reset-password" element={<ResetPasswordPage />} />
+                    <Route path="/admin" element={<AdminDashboard />} />
+                    <Route path="/admin/create" element={<ArticleEditor />} />
+                    <Route path="/admin/edit/:id" element={<ArticleEditor />} />
                 </Routes>
             </div>
         </BrowserRouter>
