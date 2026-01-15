@@ -1,6 +1,7 @@
 ﻿using FanWiki.Domain.Interfaces;
 using FanWiki.Infrastructure.Data;
 using FanWiki.Infrastructure.Repositories;
+using FanWiki.Infrastructure.Services; 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,6 +18,8 @@ public static class DependencyInjection
             options.UseNpgsql(connectionString));
 
         services.AddScoped<IArticleRepository, ArticleRepository>();
+        
+        services.AddTransient<IEmailSender, DebugEmailSender>();
 
         return services;
     }
