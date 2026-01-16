@@ -27,13 +27,18 @@ public class ArticleRepository(AppDbContext context) : IArticleRepository
     public async Task<Article?> GetByIdAsync(Guid id, CancellationToken ct)
     {
         return await context.Articles
-            .Include(a => a.Translations) 
+            .Include(a => a.Translations)
             .FirstOrDefaultAsync(a => a.Id == id, ct);
     }
 
     public async Task AddAsync(Article article, CancellationToken ct)
     {
         await context.Articles.AddAsync(article, ct);
+    }
+
+    public async Task AddTranslationAsync(ArticleTranslation translation, CancellationToken ct)
+    {
+        await context.Set<ArticleTranslation>().AddAsync(translation, ct);
     }
 
     public async Task SaveChangesAsync(CancellationToken ct)

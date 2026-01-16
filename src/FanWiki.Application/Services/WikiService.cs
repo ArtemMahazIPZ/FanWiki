@@ -135,6 +135,7 @@ public class WikiService(IArticleRepository repository) : IWikiService
         }
 
         var translation = article.Translations.FirstOrDefault(t => t.LanguageCode == dto.LanguageCode);
+
         if (translation != null)
         {
             translation.Title = dto.Title;
@@ -143,13 +144,20 @@ public class WikiService(IArticleRepository repository) : IWikiService
         }
         else
         {
-             article.Translations.Add(new ArticleTranslation
+             // Якщо перекладу немає - створюємо НОВИЙ
+             var newTranslation = new ArticleTranslation
              {
+                 Id = Guid.NewGuid(), 
+                 ArticleId = article.Id, 
                  LanguageCode = dto.LanguageCode,
                  Title = dto.Title,
                  Content = dto.Content,
                  Quote = dto.Quote 
-             });
+             };
+             
+             await repository.AddTranslationAsync(newTranslation, ct);
+             
+             article.Translations.Add(newTranslation);
         }
 
         await repository.SaveChangesAsync(ct);
