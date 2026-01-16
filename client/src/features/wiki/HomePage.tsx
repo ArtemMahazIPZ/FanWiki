@@ -1,9 +1,11 @@
 import { useEffect, useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { api } from '../../api/axios';
 import type {Article} from '../../types/article';
 import { ArticleCard } from './ArticleCard';
 
 export const HomePage = () => {
+    const { t, i18n } = useTranslation(); // Хук перекладу
     const [articles, setArticles] = useState<Article[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -11,6 +13,8 @@ export const HomePage = () => {
     const [selectedCategory, setSelectedCategory] = useState<string>('All');
 
     useEffect(() => {
+        setLoading(true);
+
         api.get<Article[]>('/Wiki')
             .then((response) => {
                 setArticles(response.data);
@@ -19,12 +23,11 @@ export const HomePage = () => {
                 console.error("Помилка завантаження:", error);
             })
             .finally(() => setLoading(false));
-    }, []);
+    }, [i18n.language]);
 
     const filteredArticles = useMemo(() => {
         return articles.filter(article => {
             const matchesCategory = selectedCategory === 'All' || article.category === selectedCategory;
-
             const searchLower = searchTerm.toLowerCase();
             const matchesSearch = article.title.toLowerCase().includes(searchLower) ||
                 article.content.toLowerCase().includes(searchLower);
@@ -39,12 +42,13 @@ export const HomePage = () => {
 
     return (
         <div className="max-w-7xl mx-auto p-6 min-h-screen">
+            {/* Герой-секція */}
             <div className="mb-10 text-center">
                 <h1 className="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-linear-to-r from-emerald-400 to-cyan-500 mb-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                    Wiki Hub
+                    {t('home.title')}
                 </h1>
                 <p className="text-slate-400 text-lg max-w-2xl mx-auto">
-                    Досліджуйте персонажів, локації та артефакти нашого всесвіту.
+                    {t('home.subtitle')}
                 </p>
             </div>
 
@@ -59,7 +63,7 @@ export const HomePage = () => {
                     <input
                         type="text"
                         className="block w-full pl-10 pr-3 py-2.5 border border-slate-700 rounded-lg leading-5 bg-slate-950 text-slate-300 placeholder-slate-500 focus:outline-none focus:bg-slate-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 sm:text-sm transition duration-200"
-                        placeholder="Пошук статей..."
+                        placeholder={t('home.search_placeholder')}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -71,11 +75,11 @@ export const HomePage = () => {
                         onChange={(e) => setSelectedCategory(e.target.value)}
                         className="appearance-none block w-full pl-3 pr-10 py-2.5 border border-slate-700 rounded-lg leading-5 bg-slate-950 text-slate-300 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 sm:text-sm transition duration-200 cursor-pointer hover:bg-slate-900"
                     >
-                        <option value="All">Всі категорії</option>
-                        <option value="Character">Персонажі (Character)</option>
-                        <option value="Location">Локації (Location)</option>
-                        <option value="Weapon">Зброя (Weapon)</option>
-                        <option value="Event">Події (Event)</option>
+                        <option value="All">{t('categories.All')}</option>
+                        <option value="Character">{t('categories.Character')}</option>
+                        <option value="Location">{t('categories.Location')}</option>
+                        <option value="Weapon">{t('categories.Weapon')}</option>
+                        <option value="Event">{t('categories.Event')}</option>
                     </select>
                     <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
                         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -86,7 +90,7 @@ export const HomePage = () => {
             </div>
 
             <div className="mb-4 text-slate-500 text-sm font-medium pl-1">
-                Знайдено статей: <span className="text-emerald-400">{filteredArticles.length}</span>
+                {t('home.found')} <span className="text-emerald-400">{filteredArticles.length}</span>
             </div>
 
             {filteredArticles.length > 0 ? (
@@ -97,8 +101,7 @@ export const HomePage = () => {
                 </div>
             ) : (
                 <div className="text-center py-20 bg-slate-900/30 rounded-lg border border-slate-800 border-dashed animate-pulse">
-                    <p className="text-slate-500 text-xl">Нічого не знайдено 🕵️‍♂️</p>
-                    <p className="text-slate-600 text-sm mt-2">Спробуйте змінити запит або категорію</p>
+                    <p className="text-slate-500 text-xl">{t('home.no_results')}</p>
                 </div>
             )}
         </div>
