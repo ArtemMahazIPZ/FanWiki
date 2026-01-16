@@ -21,11 +21,13 @@ public class WikiService(IArticleRepository repository) : IWikiService
             article.Id,             
             article.Slug, 
             translation.Title, 
-            translation.Content, 
+            translation.Content,
+            translation.Quote, 
             translation.LanguageCode,
             article.ImageUrl,              
             article.Category.ToString(),   
-            article.CreatedAt
+            article.CreatedAt,
+            article.Metadata 
         );
     }
 
@@ -43,11 +45,13 @@ public class WikiService(IArticleRepository repository) : IWikiService
             article.Id,            
             article.Slug, 
             translation.Title, 
-            translation.Content, 
+            translation.Content,
+            translation.Quote, 
             translation.LanguageCode,
             article.ImageUrl,              
             article.Category.ToString(),   
-            article.CreatedAt
+            article.CreatedAt,
+            article.Metadata
         );
     }
 
@@ -68,10 +72,12 @@ public class WikiService(IArticleRepository repository) : IWikiService
                 article.Slug, 
                 translation.Title, 
                 translation.Content, 
+                translation.Quote, 
                 translation.LanguageCode,
                 article.ImageUrl,
                 article.Category.ToString(),
-                article.CreatedAt
+                article.CreatedAt,
+                article.Metadata 
             ));
         }
 
@@ -90,14 +96,16 @@ public class WikiService(IArticleRepository repository) : IWikiService
             Slug = dto.Slug,
             IsPublished = true,
             ImageUrl = imagePath,   
-            Category = categoryEnum, 
+            Category = categoryEnum,
+            Metadata = dto.Metadata, 
             Translations =
             [
                 new ArticleTranslation
                 {
                     LanguageCode = dto.LanguageCode,
                     Title = dto.Title,
-                    Content = dto.Content
+                    Content = dto.Content,
+                    Quote = dto.Quote 
                 }
             ]
         };
@@ -114,6 +122,7 @@ public class WikiService(IArticleRepository repository) : IWikiService
         if (article == null) throw new Exception("Article not found");
 
         article.Slug = dto.Slug;
+        article.Metadata = dto.Metadata; 
 
         if (Enum.TryParse<ArticleCategory>(dto.Category, true, out var categoryEnum))
         {
@@ -130,6 +139,7 @@ public class WikiService(IArticleRepository repository) : IWikiService
         {
             translation.Title = dto.Title;
             translation.Content = dto.Content;
+            translation.Quote = dto.Quote;
         }
         else
         {
@@ -137,7 +147,8 @@ public class WikiService(IArticleRepository repository) : IWikiService
              {
                  LanguageCode = dto.LanguageCode,
                  Title = dto.Title,
-                 Content = dto.Content
+                 Content = dto.Content,
+                 Quote = dto.Quote 
              });
         }
 
