@@ -4,20 +4,81 @@ import { api } from '../../api/axios';
 import type {Article} from '../../types/article';
 import { useAuth } from '../../context/AuthContext';
 
+interface ArticleMetadata {
+    status?: string;
+    gender?: string;
+    damage?: string | number;
+    year?: string | number;
+    ammo?: string | number;
+    fireRate?: string | number;
+    region?: string;
+    population?: string | number;
+    founded?: string | number;
+    [key: string]: string | number | undefined;
+}
+
+const InfoRow = ({ label, value }: { label: string, value?: string | number }) => {
+    if (!value) return null;
+    return (
+        <div className="flex justify-between border-b border-slate-800 pb-1 last:border-0">
+            <span className="font-bold text-slate-400">{label}</span>
+            <span className="text-emerald-300 font-medium text-right">{value}</span>
+        </div>
+    );
+};
+
 export const ArticlePage = () => {
     const { slug } = useParams<{ slug: string }>();
     const navigate = useNavigate();
     const { user } = useAuth();
     const [article, setArticle] = useState<Article | null>(null);
+    const [meta, setMeta] = useState<ArticleMetadata>({});
 
     useEffect(() => {
-        api.get<Article>(`/Wiki/${slug}`).then(res => setArticle(res.data));
+        api.get<Article>(`/Wiki/${slug}`).then(res => {
+            setArticle(res.data);
+            if (res.data.metadata) {
+                try {
+                    setMeta(JSON.parse(res.data.metadata));
+                } catch { setMeta({}); }
+            }
+        });
     }, [slug]);
 
     if (!article) return <div className="p-10 text-center text-white">Завантаження...</div>;
 
+    const renderSidePanelInfo = () => {
+        switch (article.category) {
+            case 'Character':
+                return (
+                    <>
+                        <InfoRow label="Status" value={meta.status} />
+                        <InfoRow label="Gender" value={meta.gender} />
+                    </>
+                );
+            case 'Weapon':
+                return (
+                    <>
+                        <InfoRow label="Damage" value={meta.damage} />
+                        <InfoRow label="Ammo" value={meta.ammo} />
+                        <InfoRow label="Fire Rate" value={meta.fireRate ? `${meta.fireRate} RPM` : undefined} />
+                        <InfoRow label="Year" value={meta.year} />
+                    </>
+                );
+            case 'Location':
+                return (
+                    <>
+                        <InfoRow label="Region" value={meta.region} />
+                        <InfoRow label="Population" value={meta.population} />
+                        <InfoRow label="Founded" value={meta.founded} />
+                    </>
+                );
+            default: return null;
+        }
+    };
+
     return (
-        <div className="max-w-6xl mx-auto mt-8 px-4 pb-10">
+        <div className="max-w-7xl mx-auto mt-8 px-4 pb-10">
             <div className="flex justify-between items-end mb-6 border-b border-slate-700 pb-4">
                 <div>
                     <h1 className="text-5xl font-extrabold text-slate-100 tracking-tight">{article.title}</h1>
@@ -40,12 +101,18 @@ export const ArticlePage = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                 <div className="lg:col-span-3 prose prose-invert prose-lg max-w-none">
-                    <div className="bg-slate-800/50 p-6 rounded-lg border-l-4 border-emerald-500 mb-8 italic text-slate-300">
-                        "Цитата персонажа або короткий опис..."
-                    </div>
-                    <div className="whitespace-pre-wrap text-slate-300 leading-relaxed">
-                        {article.content}
-                    </div>
+
+                    {article.quote && (
+                        <div className="bg-slate-800/50 p-6 rounded-lg border-l-4 border-emerald-500 mb-8 italic text-slate-300 shadow-sm relative">
+                            <span className="absolute top-2 left-2 text-4xl text-emerald-500/20 font-serif">"</span>
+                            <p className="relative z-10">{article.quote}</p>
+                        </div>
+                    )}
+
+                    <div
+                        className="text-slate-300 leading-relaxed [&>p]:mb-4 [&>h2]:text-emerald-400 [&>h2]:mt-8 [&>h2]:mb-4 [&>h2]:font-bold [&>h2]:text-2xl [&>ul]:list-disc [&>ul]:pl-5 [&>ol]:list-decimal [&>ol]:pl-5 [&>blockquote]:border-l-4 [&>blockquote]:border-slate-500 [&>blockquote]:pl-4 [&>blockquote]:italic [&>img]:rounded-xl [&>img]:mx-auto [&>img]:my-6 [&>img]:border [&>img]:border-slate-700"
+                        dangerouslySetInnerHTML={{ __html: article.content }}
+                    />
                 </div>
 
                 <div className="lg:col-span-1">
@@ -58,25 +125,15 @@ export const ArticlePage = () => {
                                 <img
                                     src={`http://localhost:5122${article.imageUrl}`}
                                     alt={article.title}
-                                    className="w-full rounded border border-slate-800"
+                                    className="w-full rounded border border-slate-800 object-cover aspect-3/4"
                                 />
                             ) : (
                                 <div className="h-64 bg-slate-800 flex items-center justify-center text-slate-500 text-sm">No Portrait</div>
                             )}
                         </div>
                         <div className="p-4 space-y-3 text-sm">
-                            <div className="flex justify-between border-b border-slate-800 pb-1">
-                                <span className="font-bold text-slate-400">Category</span>
-                                <span className="text-emerald-300">{article.category}</span>
-                            </div>
-                            <div className="flex justify-between border-b border-slate-800 pb-1">
-                                <span className="font-bold text-slate-400">Status</span>
-                                <span className="text-emerald-300">Alive</span>
-                            </div>
-                            <div className="flex justify-between border-b border-slate-800 pb-1">
-                                <span className="font-bold text-slate-400">Gender</span>
-                                <span className="text-emerald-300">Unknown</span>
-                            </div>
+                            <InfoRow label="Category" value={article.category} />
+                            {renderSidePanelInfo()}
                         </div>
                     </div>
                 </div>

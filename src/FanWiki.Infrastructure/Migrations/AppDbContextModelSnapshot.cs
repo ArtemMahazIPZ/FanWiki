@@ -110,6 +110,9 @@ namespace FanWiki.Infrastructure.Migrations
                     b.Property<bool>("IsPublished")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("Metadata")
+                        .HasColumnType("text");
+
                     b.Property<string>("Slug")
                         .IsRequired()
                         .HasColumnType("text");
@@ -143,6 +146,9 @@ namespace FanWiki.Infrastructure.Migrations
 
                     b.Property<string>("LanguageCode")
                         .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Quote")
                         .HasColumnType("text");
 
                     b.Property<string>("Title")

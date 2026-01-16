@@ -3,8 +3,10 @@ export interface Article {
     slug: string;
     title: string;
     content: string;
+    quote?: string;
+    category: string;
     languageCode: string;
     imageUrl?: string;
-    category: string;
     createdAt: string;
+    metadata?: string;
 }
