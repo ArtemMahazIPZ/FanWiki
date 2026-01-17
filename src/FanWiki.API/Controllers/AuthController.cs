@@ -2,8 +2,8 @@
 using System.Security.Claims;
 using System.Text;
 using FanWiki.Application.DTOs;
-using FanWiki.Application.Interfaces; 
-using FanWiki.Domain.Entities;        
+using FanWiki.Application.Interfaces;
+using FanWiki.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -15,12 +15,18 @@ namespace FanWiki.API.Controllers;
 public class AuthController(
     UserManager<ApplicationUser> userManager,
     SignInManager<ApplicationUser> signInManager,
-    IEmailSender emailSender 
+    IEmailSender emailSender
     ) : ControllerBase
 {
     [HttpPost("register")]
     public async Task<IActionResult> Register(RegisterDto dto)
     {
+        var existingUser = await userManager.FindByEmailAsync(dto.Email);
+        if (existingUser != null)
+        {
+            return BadRequest(new { description = "User with this email already exists." });
+        }
+
         var user = new ApplicationUser
         {
             UserName = dto.Username,
@@ -36,7 +42,39 @@ public class AuthController(
 
         await userManager.AddToRoleAsync(user, "User");
 
-        return Ok(new { message = "Registration successful" });
+        var code = new Random().Next(100000, 999999).ToString();
+
+      
+        await userManager.AddClaimAsync(user, new Claim("EmailVerificationCode", code));
+
+        await emailSender.SendEmailAsync(dto.Email, "Код підтвердження FanWiki", 
+            $"<h1>Вітаємо!</h1><p>Ваш код підтвердження: <b>{code}</b></p>");
+
+        return Ok(new { message = "Registration successful. Please check your email for the verification code." });
+    }
+
+    [HttpPost("verify-email")]
+    public async Task<IActionResult> VerifyEmail(VerifyEmailDto dto)
+    {
+        var user = await userManager.FindByEmailAsync(dto.Email);
+        if (user == null) return BadRequest("User not found");
+
+        if (user.EmailConfirmed) return Ok(new { message = "Email is already confirmed" });
+
+        var claims = await userManager.GetClaimsAsync(user);
+        var storedCode = claims.FirstOrDefault(c => c.Type == "EmailVerificationCode")?.Value;
+
+        if (storedCode != dto.Code)
+        {
+            return BadRequest("Invalid verification code");
+        }
+
+        user.EmailConfirmed = true;
+        await userManager.UpdateAsync(user);
+
+        await userManager.RemoveClaimAsync(user, claims.First(c => c.Type == "EmailVerificationCode"));
+
+        return Ok(new { message = "Email confirmed successfully! You can now login." });
     }
 
     [HttpPost("login")]
@@ -44,6 +82,11 @@ public class AuthController(
     {
         var user = await userManager.FindByNameAsync(dto.Username);
         if (user == null) return Unauthorized("Invalid username");
+
+        if (!user.EmailConfirmed)
+        {
+             return Unauthorized("Please confirm your email address before logging in.");
+        }
 
         var result = await signInManager.CheckPasswordSignInAsync(user, dto.Password, false);
         if (!result.Succeeded) return Unauthorized("Invalid password");
