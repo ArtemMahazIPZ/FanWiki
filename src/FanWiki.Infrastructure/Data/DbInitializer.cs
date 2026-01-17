@@ -30,7 +30,7 @@ public static class DbInitializer
                 UserName = "admin",
                 Email = adminEmail,
                 Nickname = "Supreme Admin",
-                EmailConfirmed = true
+                EmailConfirmed = true 
             };
             
             await userManager.CreateAsync(newAdmin, "AdminPass123!");

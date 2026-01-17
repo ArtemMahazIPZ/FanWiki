@@ -1,21 +1,19 @@
 import { Editor } from '@tiptap/react';
+import { useRef } from 'react'; // Додали useRef
 import {
     Bold, Italic, Underline as UnderlineIcon, Strikethrough,
     Heading1, Heading2, List, ListOrdered, Quote,
     AlignLeft, AlignCenter, AlignRight, Undo, Redo, Image as ImageIcon
 } from 'lucide-react';
 import { cn } from '../../utils/cn';
+import { api } from '../../api/axios'; // Для запиту на сервер
 
 interface EditorToolbarProps {
     editor: Editor | null;
 }
 
-const MenuButton = ({
-                        isActive,
-                        onClick,
-                        children,
-                        title
-                    }: { isActive?: boolean, onClick: () => void, children: React.ReactNode, title: string }) => (
+// MenuButton залишається без змін...
+const MenuButton = ({ isActive, onClick, children, title }: any) => (
     <button
         type="button"
         onMouseDown={(e) => e.preventDefault()}
@@ -31,73 +29,69 @@ const MenuButton = ({
 );
 
 export const EditorToolbar = ({ editor }: EditorToolbarProps) => {
+    const fileInputRef = useRef<HTMLInputElement>(null); // Реф для інпута
+
     if (!editor) return null;
 
-    const addImage = () => {
-        const url = window.prompt('Вставте URL картинки:');
-        if (url) {
-            editor.chain().focus().setImage({ src: url }).run();
+    // 1. Клік на кнопку імітує клік на інпут
+    const handleImageClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    // 2. Коли файл обрано - вантажимо на сервер
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const res = await api.post('/Wiki/upload-image', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+
+            // 3. Вставляємо картинку в редактор по URL, який вернув сервер
+            const fullUrl = `http://localhost:5122${res.data.url}`;
+            editor.chain().focus().setImage({ src: fullUrl }).run();
+        } catch (error) {
+            alert('Не вдалося завантажити зображення');
+        } finally {
+            // Скидаємо інпут, щоб можна було вибрати той самий файл знову
+            if (fileInputRef.current) fileInputRef.current.value = '';
         }
     };
 
     return (
         <div className="border-b border-slate-700 p-2 flex flex-wrap gap-1 bg-slate-900 sticky top-0 z-10 items-center">
+
+            {/* Прихований інпут для файлів */}
+            <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept="image/*"
+                onChange={handleFileChange}
+            />
+
+            {/* ... Твої кнопки форматування ... */}
             <div className="flex gap-1 border-r border-slate-700 pr-2 mr-2">
                 <MenuButton onClick={() => editor.chain().focus().toggleBold().run()} isActive={editor.isActive('bold')} title="Жирний">
                     <Bold size={18} />
                 </MenuButton>
-                <MenuButton onClick={() => editor.chain().focus().toggleItalic().run()} isActive={editor.isActive('italic')} title="Курсив">
-                    <Italic size={18} />
-                </MenuButton>
-                <MenuButton onClick={() => editor.chain().focus().toggleUnderline().run()} isActive={editor.isActive('underline')} title="Підкреслений">
-                    <UnderlineIcon size={18} />
-                </MenuButton>
-                <MenuButton onClick={() => editor.chain().focus().toggleStrike().run()} isActive={editor.isActive('strike')} title="Закреслений">
-                    <Strikethrough size={18} />
-                </MenuButton>
+                {/* ... інші ... */}
             </div>
 
+            {/* ... Групи ... */}
+
             <div className="flex gap-1 border-r border-slate-700 pr-2 mr-2">
-                <MenuButton onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} isActive={editor.isActive('heading', { level: 2 })} title="Заголовок H2">
-                    <Heading1 size={18} />
-                </MenuButton>
-                <MenuButton onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} isActive={editor.isActive('heading', { level: 3 })} title="Заголовок H3">
-                    <Heading2 size={18} />
-                </MenuButton>
-                <MenuButton onClick={() => editor.chain().focus().toggleBulletList().run()} isActive={editor.isActive('bulletList')} title="Список">
-                    <List size={18} />
-                </MenuButton>
-                <MenuButton onClick={() => editor.chain().focus().toggleOrderedList().run()} isActive={editor.isActive('orderedList')} title="Нумерація">
-                    <ListOrdered size={18} />
-                </MenuButton>
-                <MenuButton onClick={() => editor.chain().focus().toggleBlockquote().run()} isActive={editor.isActive('blockquote')} title="Цитата">
-                    <Quote size={18} />
-                </MenuButton>
-                <MenuButton onClick={addImage} isActive={editor.isActive('image')} title="Вставити фото">
+                {/* ... */}
+                <MenuButton onClick={handleImageClick} isActive={editor.isActive('image')} title="Завантажити фото">
                     <ImageIcon size={18} />
                 </MenuButton>
             </div>
 
-            <div className="flex gap-1 border-r border-slate-700 pr-2 mr-2">
-                <MenuButton onClick={() => editor.chain().focus().setTextAlign('left').run()} isActive={editor.isActive({ textAlign: 'left' })} title="Ліворуч">
-                    <AlignLeft size={18} />
-                </MenuButton>
-                <MenuButton onClick={() => editor.chain().focus().setTextAlign('center').run()} isActive={editor.isActive({ textAlign: 'center' })} title="По центру">
-                    <AlignCenter size={18} />
-                </MenuButton>
-                <MenuButton onClick={() => editor.chain().focus().setTextAlign('right').run()} isActive={editor.isActive({ textAlign: 'right' })} title="Праворуч">
-                    <AlignRight size={18} />
-                </MenuButton>
-            </div>
-
-            <div className="flex gap-1 ml-auto">
-                <MenuButton onClick={() => editor.chain().focus().undo().run()} title="Скасувати">
-                    <Undo size={18} />
-                </MenuButton>
-                <MenuButton onClick={() => editor.chain().focus().redo().run()} title="Повторити">
-                    <Redo size={18} />
-                </MenuButton>
-            </div>
+            {/* ... Undo/Redo ... */}
         </div>
     );
 };

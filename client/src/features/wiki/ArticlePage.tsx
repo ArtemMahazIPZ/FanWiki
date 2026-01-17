@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../../api/axios';
 import type {Article} from '../../types/article';
 import { useAuth } from '../../context/AuthContext';
+import { useTranslation } from 'react-i18next';
+import { CommentsSection } from './CommentsSection';
 
 interface ArticleMetadata {
     status?: string;
@@ -31,8 +33,15 @@ export const ArticlePage = () => {
     const { slug } = useParams<{ slug: string }>();
     const navigate = useNavigate();
     const { user } = useAuth();
+    const { t, i18n } = useTranslation(); // Хук
+
     const [article, setArticle] = useState<Article | null>(null);
     const [meta, setMeta] = useState<ArticleMetadata>({});
+
+    const tv = (val?: string | number) => {
+        if (!val) return undefined;
+        return t(`meta_values.${val}`, { defaultValue: val });
+    };
 
     useEffect(() => {
         api.get<Article>(`/Wiki/${slug}`).then(res => {
@@ -43,34 +52,34 @@ export const ArticlePage = () => {
                 } catch { setMeta({}); }
             }
         });
-    }, [slug]);
+    }, [slug, i18n.language]);
 
-    if (!article) return <div className="p-10 text-center text-white">Завантаження...</div>;
+    if (!article) return <div className="p-10 text-center text-white">Loading...</div>;
 
     const renderSidePanelInfo = () => {
         switch (article.category) {
             case 'Character':
                 return (
                     <>
-                        <InfoRow label="Status" value={meta.status} />
-                        <InfoRow label="Gender" value={meta.gender} />
+                        <InfoRow label={t('article.status')} value={tv(meta.status)} />
+                        <InfoRow label={t('article.gender')} value={tv(meta.gender)} />
                     </>
                 );
             case 'Weapon':
                 return (
                     <>
-                        <InfoRow label="Damage" value={meta.damage} />
-                        <InfoRow label="Ammo" value={meta.ammo} />
-                        <InfoRow label="Fire Rate" value={meta.fireRate ? `${meta.fireRate} RPM` : undefined} />
-                        <InfoRow label="Year" value={meta.year} />
+                        <InfoRow label={t('article.damage')} value={meta.damage} />
+                        <InfoRow label={t('article.ammo')} value={meta.ammo} />
+                        <InfoRow label="RPM" value={meta.fireRate ? `${meta.fireRate}` : undefined} />
+                        <InfoRow label={t('article.year')} value={meta.year} />
                     </>
                 );
             case 'Location':
                 return (
                     <>
-                        <InfoRow label="Region" value={meta.region} />
-                        <InfoRow label="Population" value={meta.population} />
-                        <InfoRow label="Founded" value={meta.founded} />
+                        <InfoRow label={t('article.region')} value={meta.region} />
+                        <InfoRow label={t('article.population')} value={meta.population} />
+                        <InfoRow label={t('article.founded')} value={meta.founded} />
                     </>
                 );
             default: return null;
@@ -93,7 +102,7 @@ export const ArticlePage = () => {
                             onClick={() => navigate(`/admin/edit/${article.id}`)}
                             className="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded text-sm font-bold text-white transition"
                         >
-                            Edit
+                            {t('article.edit')}
                         </button>
                     </div>
                 )}
@@ -101,7 +110,6 @@ export const ArticlePage = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                 <div className="lg:col-span-3 prose prose-invert prose-lg max-w-none">
-
                     {article.quote && (
                         <div className="bg-slate-800/50 p-6 rounded-lg border-l-4 border-emerald-500 mb-8 italic text-slate-300 shadow-sm relative">
                             <span className="absolute top-2 left-2 text-4xl text-emerald-500/20 font-serif">"</span>
@@ -132,11 +140,14 @@ export const ArticlePage = () => {
                             )}
                         </div>
                         <div className="p-4 space-y-3 text-sm">
-                            <InfoRow label="Category" value={article.category} />
+                            <InfoRow label={t('article.category')} value={t(`categories.${article.category}`)} />
                             {renderSidePanelInfo()}
                         </div>
                     </div>
                 </div>
+            </div>
+            <div className="max-w-4xl mx-auto">
+                <CommentsSection articleId={article.id} />
             </div>
         </div>
     );
