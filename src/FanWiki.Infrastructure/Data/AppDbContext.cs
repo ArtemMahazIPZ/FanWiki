@@ -1,4 +1,4 @@
-﻿using FanWiki.Domain.Entities;
+﻿using FanWiki.Domain.Entities; 
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,6 +8,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
 {
     public DbSet<Article> Articles { get; set; }
     public DbSet<ArticleTranslation> ArticleTranslations { get; set; }
+    
+    public DbSet<Comment> Comments { get; set; }
+    public DbSet<CommentReaction> CommentReactions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -22,5 +25,15 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
             .WithMany(a => a.Translations)
             .HasForeignKey(t => t.ArticleId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<Comment>()
+            .HasOne(c => c.User)
+            .WithMany()
+            .HasForeignKey(c => c.UserId)
+            .OnDelete(DeleteBehavior.Restrict); 
+            
+        builder.Entity<CommentReaction>()
+            .HasIndex(r => new { r.CommentId, r.UserId })
+            .IsUnique();
     }
 }

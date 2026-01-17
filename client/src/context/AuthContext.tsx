@@ -1,10 +1,12 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { jwtDecode } from 'jwt-decode';
 
-interface User {
+export interface User {
+    id: string;
     username: string;
     nickname: string;
     role: string;
+    avatarUrl?: string;
 }
 
 interface AuthContextType {
@@ -12,6 +14,7 @@ interface AuthContextType {
     login: (token: string) => void;
     logout: () => void;
     isAuthenticated: boolean;
+    updateUser: (user: User) => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -23,11 +26,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         try {
             const decoded: any = jwtDecode(token);
             return {
-                username: decoded.sub || decoded.name,
+                id: decoded.sub || "",
+                username: decoded.sub || decoded.name || "",
                 nickname: decoded.nickname || decoded.name || "User",
-                role: decoded.role || decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] || "User"
+                role: decoded.role || decoded["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] || "User",
+                avatarUrl: decoded.avatarUrl
             };
         } catch (error) {
+            console.error("Token decode error", error);
             return null;
         }
     };
@@ -51,8 +57,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(null);
     };
 
+    const updateUser = (updatedUser: User) => {
+        setUser(updatedUser);
+    };
+
     return (
-        <AuthContext.Provider value={{ user, login, logout, isAuthenticated: !!user }}>
+        <AuthContext.Provider value={{ user, login, logout, isAuthenticated: !!user, updateUser }}>
             {children}
         </AuthContext.Provider>
     );

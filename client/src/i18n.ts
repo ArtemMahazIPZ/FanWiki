@@ -11,7 +11,8 @@ const resources = {
                 "register": "Register",
                 "logout": "Logout",
                 "admin": "Admin Panel",
-                "hello": "Hello"
+                "hello": "Hello",
+                "profile": "My Profile"
             },
             "home": {
                 "title": "Wiki Hub",
@@ -39,6 +40,34 @@ const resources = {
                 "region": "Region",
                 "population": "Population",
                 "founded": "Founded"
+            },
+            "meta_values": {
+                "Alive": "Alive",
+                "Deceased": "Deceased",
+                "Unknown": "Unknown",
+                "Male": "Male",
+                "Female": "Female"
+            },
+            "profile": {
+                "title": "User Profile",
+                "upload_avatar": "Change Avatar",
+                "save": "Save Changes",
+                "email": "Email",
+                "nickname": "Nickname"
+            },
+            "comments": {
+                "title": "Comments",
+                "placeholder": "Join the discussion...",
+                "post": "Post Comment",
+                "reply": "Reply",
+                "send": "Send",
+                "login_to_comment": "Please {{login}} to comment.",
+                "login_link": "login",
+                "delete_confirm": "Delete this comment?",
+                "ban_prompt": "Ban user for how many minutes?",
+                "user_banned": "User banned",
+                "login_to_react": "Please login to react",
+                "deleted_message": "[This comment has been deleted]"
             }
         }
     },
@@ -50,7 +79,8 @@ const resources = {
                 "register": "Реєстрація",
                 "logout": "Вийти",
                 "admin": "Адмін Панель",
-                "hello": "Привіт"
+                "hello": "Привіт",
+                "profile": "Мій Профіль"
             },
             "home": {
                 "title": "Wiki Hub",
@@ -78,6 +108,34 @@ const resources = {
                 "region": "Регіон",
                 "population": "Населення",
                 "founded": "Засновано"
+            },
+            "meta_values": {
+                "Alive": "Живий",
+                "Deceased": "Мертвий",
+                "Unknown": "Невідомо",
+                "Male": "Чоловік",
+                "Female": "Жінка"
+            },
+            "profile": {
+                "title": "Профіль користувача",
+                "upload_avatar": "Змінити аватар",
+                "save": "Зберегти зміни",
+                "email": "Пошта",
+                "nickname": "Нікнейм"
+            },
+            "comments": {
+                "title": "Коментарі",
+                "placeholder": "Долучайтеся до обговорення...",
+                "post": "Надіслати коментар",
+                "reply": "Відповісти",
+                "send": "Надіслати",
+                "login_to_comment": "Будь ласка, {{login}}, щоб залишити коментар.",
+                "login_link": "увійдіть",
+                "delete_confirm": "Видалити цей коментар?",
+                "ban_prompt": "На скільки хвилин забанити користувача?",
+                "user_banned": "Користувача забанено",
+                "login_to_react": "Увійдіть, щоб ставити реакції",
+                "deleted_message": "[Цей коментар було видалено]"
             }
         }
     }

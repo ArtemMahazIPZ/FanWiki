@@ -2,8 +2,8 @@
 using System.Security.Claims;
 using System.Text;
 using FanWiki.Application.DTOs;
-using FanWiki.Domain.Entities;
-using FanWiki.Infrastructure.Services; 
+using FanWiki.Application.Interfaces; 
+using FanWiki.Domain.Entities;        
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -64,7 +64,6 @@ public class AuthController(
     {
         var user = await userManager.FindByEmailAsync(dto.Email);
         
-        
         if (user == null) 
             return Ok(new { message = "If your email exists in our system, we have sent a reset code." });
 
@@ -97,7 +96,8 @@ public class AuthController(
         {
             new(JwtRegisteredClaimNames.Sub, user.Id),
             new(JwtRegisteredClaimNames.Name, user.UserName!),
-            new("nickname", user.Nickname ?? "")
+            new("nickname", user.Nickname ?? ""),
+            new("avatarUrl", user.AvatarUrl ?? "") 
         };
         
         foreach (var role in roles)

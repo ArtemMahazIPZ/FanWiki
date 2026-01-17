@@ -1,4 +1,5 @@
-﻿using FanWiki.Domain.Interfaces;
+﻿using FanWiki.Application.Interfaces; 
+using FanWiki.Domain.Interfaces;
 using FanWiki.Infrastructure.Data;
 using FanWiki.Infrastructure.Repositories;
 using FanWiki.Infrastructure.Services; 

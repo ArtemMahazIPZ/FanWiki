@@ -79,6 +79,25 @@ public class WikiController(IWikiService wikiService, IWebHostEnvironment env) :
             return BadRequest(new { message = ex.Message });
         }
     }
+    [HttpPost("upload-image")]
+    [Authorize(Roles = "Admin")] 
+    public async Task<IActionResult> UploadArticleImage(IFormFile file)
+    {
+        if (file == null || file.Length == 0) return BadRequest("No file");
+
+        var uploadsFolder = Path.Combine(env.WebRootPath, "images", "articles");
+        if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
+
+        var uniqueFileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+        var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+        using (var stream = new FileStream(filePath, FileMode.Create))
+        {
+            await file.CopyToAsync(stream);
+        }
+
+        return Ok(new { url = $"/images/articles/{uniqueFileName}" });
+    }
     
     private async Task<string?> SaveImageAsync(IFormFile? image, CancellationToken ct)
     {

@@ -1,6 +1,6 @@
 using System.Text;
 using FanWiki.Application.Services;
-using FanWiki.Domain.Entities;
+using FanWiki.Domain.Entities; 
 using FanWiki.Infrastructure;
 using FanWiki.Infrastructure.Data; 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -69,7 +69,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();
+app.UseStaticFiles(); 
 
 app.UseAuthentication(); 
 app.UseAuthorization();

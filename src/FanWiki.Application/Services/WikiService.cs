@@ -144,7 +144,6 @@ public class WikiService(IArticleRepository repository) : IWikiService
         }
         else
         {
-             // Якщо перекладу немає - створюємо НОВИЙ
              var newTranslation = new ArticleTranslation
              {
                  Id = Guid.NewGuid(), 
