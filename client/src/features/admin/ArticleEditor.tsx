@@ -3,13 +3,14 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import Underline from '@tiptap/extension-underline';
+import {TextStyle} from '@tiptap/extension-text-style';
 import TextAlign from '@tiptap/extension-text-align';
-import ImageExtension from '@tiptap/extension-image';
 
 import { api } from '../../api/axios';
 import type { Article } from '../../types/article';
 import { EditorToolbar } from './EditorToolbar';
+import { FontSize } from '../../extensions/FontSize';
+import { CustomImage } from '../../extensions/CustomImage';
 
 interface ArticleMetadata {
     status?: string;
@@ -50,14 +51,17 @@ export const ArticleEditor = () => {
     const editor = useEditor({
         extensions: [
             StarterKit,
-            Underline,
-            TextAlign.configure({ types: ['heading', 'paragraph', 'image'] }),
-            ImageExtension.configure({ inline: true }),
+            TextStyle,
+            FontSize,
+            CustomImage,
+            TextAlign.configure({
+                types: ['heading', 'paragraph', 'image'],
+            }),
         ],
         content: formData.content,
         editorProps: {
             attributes: {
-                class: 'prose prose-invert prose-sm sm:prose-base max-w-none focus:outline-none min-h-[300px] p-4 text-slate-300 leading-relaxed [&>img]:rounded-xl [&>img]:border [&>img]:border-slate-700',
+                class: 'prose prose-invert prose-sm sm:prose-base max-w-none focus:outline-none min-h-[300px] p-4 text-slate-300 leading-relaxed [&>img]:rounded-xl [&>img]:border [&>img]:border-slate-700 [&>img]:inline-block',
             },
         },
         onUpdate: ({ editor }) => {
@@ -116,7 +120,6 @@ export const ArticleEditor = () => {
             navigate(`/wiki/${formData.slug}`);
         } catch (error: unknown) {
             console.error(error);
-            // Безпечне приведення типу для отримання повідомлення про помилку
             const err = error as { response?: { data?: { message?: string } } };
             const message = err.response?.data?.message || "Невідома помилка";
             alert(`Не вдалося зберегти: ${message}`);
@@ -205,7 +208,7 @@ export const ArticleEditor = () => {
 
     return (
         <div className="max-w-5xl mx-auto p-6 mt-4 pb-20">
-            <h1 className="text-3xl font-bold mb-8 text-transparent bg-clip-text bg-linear-to-r from-emerald-400 to-cyan-500">
+            <h1 className="text-3xl font-bold mb-8 text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-500">
                 {isEdit ? t('article.edit') : 'Create Article'}
             </h1>
 
@@ -259,7 +262,7 @@ export const ArticleEditor = () => {
                 </div>
 
                 <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-lg">
-                    <h2 className="text-xl font-bold text-slate-200 mb-4 flex items-center gap-2">🖼️ Image</h2>
+                    <h2 className="text-xl font-bold text-slate-200 mb-4 flex items-center gap-2">🖼️ Main Image (Portrait)</h2>
                     <div className="border-2 border-slate-700 border-dashed p-8 rounded-lg text-center hover:bg-slate-800/50 transition group cursor-pointer relative">
                         <input type="file" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onChange={e => setFile(e.target.files?.[0] || null)} />
                         <div className="space-y-2">
