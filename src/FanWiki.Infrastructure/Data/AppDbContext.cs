@@ -11,6 +11,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
     
     public DbSet<Comment> Comments { get; set; }
     public DbSet<CommentReaction> CommentReactions { get; set; }
+    
+    public DbSet<Report> Reports { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -35,5 +37,11 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
         builder.Entity<CommentReaction>()
             .HasIndex(r => new { r.CommentId, r.UserId })
             .IsUnique();
+            
+        builder.Entity<Report>()
+            .HasOne(r => r.Sender)
+            .WithMany()
+            .HasForeignKey(r => r.SenderId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
