@@ -2,16 +2,33 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { useTranslation } from 'react-i18next';
+import { useEffect, useState } from 'react';
+import { api } from '../api/axios';
 
 export const Header = () => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
     const { t } = useTranslation();
+    const [pendingReports, setPendingReports] = useState(0);
 
     const handleLogout = () => {
         logout();
         navigate('/');
     };
+
+    useEffect(() => {
+        if (user?.role === 'Admin') {
+            const fetchReports = () => {
+                api.get('/Reports/pending-count')
+                    .then(res => setPendingReports(res.data))
+                    .catch(console.error);
+            };
+
+            fetchReports();
+            const interval = setInterval(fetchReports, 30000);
+            return () => clearInterval(interval);
+        }
+    }, [user]);
 
     return (
         <header className="bg-slate-900 border-b border-slate-800 sticky top-0 z-50 backdrop-blur-md bg-opacity-80">
@@ -31,10 +48,28 @@ export const Header = () => {
 
                     {user ? (
                         <div className="flex items-center gap-4 animate-in fade-in slide-in-from-top-2 duration-500">
+
                             {user.role === 'Admin' && (
-                                <Link to="/admin" className="hidden md:block px-3 py-1 rounded bg-indigo-600/20 text-indigo-400 border border-indigo-500/50 hover:bg-indigo-600 hover:text-white text-xs font-bold uppercase tracking-wider transition">
-                                    {t('nav.admin')}
-                                </Link>
+                                <div className="flex items-center gap-2 mr-2 border-r border-slate-700 pr-4">
+
+                                    <Link
+                                        to="/admin/reports"
+                                        className="relative p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-full transition"
+                                        title="Центр скарг"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+
+                                        {pendingReports > 0 && (
+                                            <span className="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full animate-pulse shadow-sm border border-slate-900">
+                                                {pendingReports}
+                                            </span>
+                                        )}
+                                    </Link>
+
+                                    <Link to="/admin" className="hidden md:block px-3 py-1 rounded bg-indigo-600/20 text-indigo-400 border border-indigo-500/50 hover:bg-indigo-600 hover:text-white text-xs font-bold uppercase tracking-wider transition">
+                                        Admin Panel
+                                    </Link>
+                                </div>
                             )}
 
                             <div className="text-right hidden sm:block">

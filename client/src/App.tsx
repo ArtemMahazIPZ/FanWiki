@@ -8,6 +8,8 @@ import { ArticleEditor } from './features/admin/ArticleEditor';
 import { UserProfilePage } from './features/auth/UserProfilePage';
 import { ForgotPasswordPage } from './features/auth/ForgotPasswordPage';
 import { ResetPasswordPage } from './features/auth/ResetPasswordPage';
+import { ReportsPage } from './features/admin/ReportsPage';
+import {AdminDashboard} from "./features/admin/AdminDashboard.tsx";
 
 function App() {
     return (
@@ -24,9 +26,10 @@ function App() {
                 <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                 <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-                <Route path="/admin" element={<ArticleEditor />} />
+                <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/admin/create" element={<ArticleEditor />} />
                 <Route path="/admin/edit/:id" element={<ArticleEditor />} />
+                <Route path="/admin/reports" element={<ReportsPage />} />
             </Routes>
         </div>
     );

@@ -54,6 +54,29 @@ export const ArticlePage = () => {
         });
     }, [slug, i18n.language]);
 
+    const handleReport = async () => {
+        if (!user) {
+            const wantLogin = confirm("Щоб надіслати скаргу, потрібно увійти. Перейти на сторінку входу?");
+            if (wantLogin) navigate('/login');
+            return;
+        }
+
+        const reason = prompt("Опишіть проблему (помилка, нецензурна лексика, пропозиція):");
+
+        if (reason && reason.trim().length > 0) {
+            try {
+                await api.post('/Reports', {
+                    reason: reason,
+                    targetUrl: window.location.href
+                });
+                alert("Дякуємо! Адміністратор отримав ваше повідомлення.");
+            } catch (error) {
+                console.error(error);
+                alert("Не вдалося відправити скаргу.");
+            }
+        }
+    };
+
     if (!article) return <div className="p-10 text-center text-white">Loading...</div>;
 
     const renderSidePanelInfo = () => {
@@ -121,21 +144,27 @@ export const ArticlePage = () => {
                         className="
                             prose prose-invert prose-lg max-w-none
                             text-slate-300 leading-relaxed
-                            /* Стилі для заголовків */
                             [&>h2]:text-emerald-400 [&>h2]:mt-10 [&>h2]:mb-6 [&>h2]:font-bold [&>h2]:text-3xl [&>h2]:border-b [&>h2]:border-slate-800 [&>h2]:pb-2
                             [&>h3]:text-emerald-200 [&>h3]:mt-8 [&>h3]:font-bold [&>h3]:text-xl
-                            /* Стилі для списків */
                             [&>ul]:list-disc [&>ul]:pl-6 [&>ul]:text-slate-300
                             [&>ol]:list-decimal [&>ol]:pl-6
-                            /* Стилі для цитат */
                             [&>blockquote]:border-l-4 [&>blockquote]:border-slate-600 [&>blockquote]:pl-4 [&>blockquote]:italic [&>blockquote]:text-slate-400
-                            /* ВАЖЛИВО: Стилі для картинок - ми прибрали w-full, щоб працював inline style */
                             [&>img]:rounded-xl [&>img]:my-8 [&>img]:border [&>img]:border-slate-700 [&>img]:shadow-2xl
-                            /* Вирівнювання тексту */
                             [&>p]:text-justify
                         "
                         dangerouslySetInnerHTML={{ __html: article.content }}
                     />
+
+                    <div className="mt-12 pt-6 border-t border-slate-800/50 flex justify-end">
+                        <button
+                            onClick={handleReport}
+                            className="text-slate-500 hover:text-red-400 text-xs uppercase font-bold tracking-wider flex items-center gap-2 transition duration-200"
+                            title="Повідомити про помилку або порушення"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                            Повідомити про помилку
+                        </button>
+                    </div>
                 </div>
 
                 <div className="lg:col-span-1">
