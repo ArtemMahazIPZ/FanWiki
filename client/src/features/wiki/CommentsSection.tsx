@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom'; // Додали Link для повідомлення про логін
+import { Link } from 'react-router-dom';
 import { api } from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 import { useTranslation } from 'react-i18next';
@@ -36,9 +36,16 @@ export const CommentsSection = ({ articleId }: { articleId: string }) => {
             setNewComment('');
             setReplyTo(null);
             loadComments();
-        } catch (error: unknown) {
-            const err = error as { response?: { data?: string } };
-            alert(err.response?.data || "Error posting comment");
+        } catch (error: any) {
+            if (error.response?.status === 403 && error.response?.data?.expiresAt) {
+                const utcDate = error.response.data.expiresAt;
+                const localDate = new Date(utcDate).toLocaleString();
+
+                alert(`${t('comments.user_banned')}. Розбан: ${localDate}`);
+            } else {
+                const msg = error.response?.data?.message || error.response?.data || "Error posting comment";
+                alert(msg);
+            }
         }
     };
 

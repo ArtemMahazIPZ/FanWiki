@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FanWiki.Infrastructure")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8f8262e3cb2196aa1a5c028b84fd597e5ff79385")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5d20d5ffda2f469c7808d9519fc92baaf8e0447d")]
 [assembly: System.Reflection.AssemblyProductAttribute("FanWiki.Infrastructure")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FanWiki.Infrastructure")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

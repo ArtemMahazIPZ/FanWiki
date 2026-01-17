@@ -35,8 +35,16 @@ public class CommentsController(AppDbContext context, UserManager<ApplicationUse
     public async Task<IActionResult> Create([FromBody] CreateCommentDto dto)
     {
         var user = await userManager.GetUserAsync(User);
+        if (user == null) return Unauthorized();
+        
         if (user.BanExpiresAt > DateTime.UtcNow) 
-            return BadRequest($"You are banned until {user.BanExpiresAt}");
+        {
+            return StatusCode(403, new 
+            { 
+                message = "You are banned", 
+                expiresAt = user.BanExpiresAt 
+            });
+        }
 
         var comment = new Comment
         {
