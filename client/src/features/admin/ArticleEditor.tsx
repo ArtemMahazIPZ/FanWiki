@@ -15,6 +15,12 @@ import { CustomImage } from '../../extensions/CustomImage';
 interface ArticleMetadata {
     status?: string;
     gender?: string;
+    voiceActor?: string;
+    causeOfDeath?: string;
+    family?: string[];
+    allies?: string[];
+    enemies?: string[];
+
     damage?: string | number;
     year?: string | number;
     ammo?: string | number;
@@ -22,7 +28,8 @@ interface ArticleMetadata {
     region?: string;
     population?: string | number;
     founded?: string | number;
-    [key: string]: string | number | undefined;
+
+    [key: string]: string | number | string[] | undefined;
 }
 
 export const ArticleEditor = () => {
@@ -43,7 +50,10 @@ export const ArticleEditor = () => {
 
     const [metadata, setMetadata] = useState<ArticleMetadata>({
         status: 'Alive',
-        gender: 'Unknown'
+        gender: 'Unknown',
+        family: [],
+        allies: [],
+        enemies: []
     });
 
     const [existingImage, setExistingImage] = useState<string | null>(null);
@@ -84,8 +94,17 @@ export const ArticleEditor = () => {
                     languageCode: i18n.language
                 });
                 setExistingImage(data.imageUrl || null);
+
                 if (data.metadata) {
-                    try { setMetadata(JSON.parse(data.metadata)); } catch { setMetadata({}); }
+                    try {
+                        const parsed = JSON.parse(data.metadata);
+                        setMetadata({
+                            ...parsed,
+                            family: parsed.family || [],
+                            allies: parsed.allies || [],
+                            enemies: parsed.enemies || []
+                        });
+                    } catch { setMetadata({}); }
                 }
                 editor?.commands.setContent(data.content);
             });
@@ -98,9 +117,72 @@ export const ArticleEditor = () => {
 
         let defaults: ArticleMetadata = {};
         if (newCategory === 'Character') {
-            defaults = { status: 'Alive', gender: 'Unknown' };
+            defaults = {
+                status: 'Alive',
+                gender: 'Unknown',
+                family: [],
+                allies: [],
+                enemies: []
+            };
         }
         setMetadata(defaults);
+    };
+
+    const handleListChange = (field: 'family' | 'allies' | 'enemies', index: number, value: string) => {
+        const list = [...(metadata[field] || [])];
+        list[index] = value;
+        setMetadata({ ...metadata, [field]: list });
+    };
+
+    const addListItem = (field: 'family' | 'allies' | 'enemies') => {
+        const list = [...(metadata[field] || [])];
+        list.push('');
+        setMetadata({ ...metadata, [field]: list });
+    };
+
+    const removeListItem = (field: 'family' | 'allies' | 'enemies', index: number) => {
+        const list = [...(metadata[field] || [])];
+        list.splice(index, 1);
+        setMetadata({ ...metadata, [field]: list });
+    };
+
+    const renderListInput = (label: string, field: 'family' | 'allies' | 'enemies') => {
+        const items = metadata[field] || [];
+        return (
+            <div className="col-span-1 md:col-span-2 bg-slate-950/50 p-3 rounded border border-slate-700">
+                <label className="text-xs text-slate-400 uppercase font-bold flex justify-between items-center mb-2">
+                    {label}
+                    <button
+                        type="button"
+                        onClick={() => addListItem(field)}
+                        className="text-emerald-400 hover:text-emerald-300 text-xs px-2 py-1 bg-emerald-900/30 rounded"
+                    >
+                        + Додати
+                    </button>
+                </label>
+                <div className="space-y-2">
+                    {items.map((item, index) => (
+                        <div key={index} className="flex gap-2">
+                            <input
+                                className="w-full bg-slate-900 p-2 rounded border border-slate-600 text-sm focus:border-emerald-500 outline-none"
+                                value={item}
+                                placeholder={`${label} #${index + 1}`}
+                                onChange={(e) => handleListChange(field, index, e.target.value)}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => removeListItem(field, index)}
+                                className="text-red-400 hover:text-red-300 px-2"
+                                title="Видалити"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                    ))}
+                    {items.length === 0 && <span className="text-slate-600 text-xs italic">Список порожній</span>}
+                </div>
+            </div>
+        );
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -118,7 +200,13 @@ export const ArticleEditor = () => {
         }
 
         data.append('LanguageCode', formData.languageCode);
-        data.append('Metadata', JSON.stringify(metadata));
+
+        const cleanMetadata = { ...metadata };
+        if (cleanMetadata.family) cleanMetadata.family = cleanMetadata.family.filter(x => x.trim() !== '');
+        if (cleanMetadata.allies) cleanMetadata.allies = cleanMetadata.allies.filter(x => x.trim() !== '');
+        if (cleanMetadata.enemies) cleanMetadata.enemies = cleanMetadata.enemies.filter(x => x.trim() !== '');
+
+        data.append('Metadata', JSON.stringify(cleanMetadata));
         if (file) data.append('Image', file);
 
         try {
@@ -137,7 +225,7 @@ export const ArticleEditor = () => {
         switch (formData.category) {
             case 'Character':
                 return (
-                    <div className="grid grid-cols-2 gap-4 bg-slate-800 p-4 rounded border border-slate-700 animate-in fade-in">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-800 p-4 rounded border border-slate-700 animate-in fade-in">
                         <div>
                             <label className="text-xs text-slate-400 uppercase font-bold">{t('article.status')}</label>
                             <select
@@ -145,11 +233,12 @@ export const ArticleEditor = () => {
                                 value={metadata.status || 'Alive'}
                                 onChange={e => setMetadata({...metadata, status: e.target.value})}
                             >
-                                <option value="Alive">Alive</option>
-                                <option value="Deceased">Deceased</option>
-                                <option value="Unknown">Unknown</option>
+                                <option value="Alive">Alive (Живий)</option>
+                                <option value="Deceased">Deceased (Мертвий)</option>
+                                <option value="Unknown">Unknown (Невідомо)</option>
                             </select>
                         </div>
+
                         <div>
                             <label className="text-xs text-slate-400 uppercase font-bold">{t('article.gender')}</label>
                             <select
@@ -162,8 +251,35 @@ export const ArticleEditor = () => {
                                 <option value="Unknown">Unknown</option>
                             </select>
                         </div>
+
+                        {metadata.status === 'Deceased' && (
+                            <div className="col-span-1 md:col-span-2 animate-in slide-in-from-top-2">
+                                <label className="text-xs text-red-400 uppercase font-bold">☠️ Причина смерті</label>
+                                <input
+                                    placeholder="Як загинув персонаж?"
+                                    className="w-full bg-slate-950 p-2 rounded border border-red-900/50 mt-1 outline-none focus:border-red-500"
+                                    value={metadata.causeOfDeath || ''}
+                                    onChange={e => setMetadata({...metadata, causeOfDeath: e.target.value})}
+                                />
+                            </div>
+                        )}
+
+                        <div className="col-span-1 md:col-span-2">
+                            <label className="text-xs text-slate-400 uppercase font-bold">🎙️ Актор озвучування</label>
+                            <input
+                                placeholder="Ім'я актора"
+                                className="w-full bg-slate-950 p-2 rounded border border-slate-600 mt-1 outline-none focus:border-emerald-500"
+                                value={metadata.voiceActor || ''}
+                                onChange={e => setMetadata({...metadata, voiceActor: e.target.value})}
+                            />
+                        </div>
+
+                        {renderListInput("Сім'я", 'family')}
+                        {renderListInput("Союзники", 'allies')}
+                        {renderListInput("Вороги", 'enemies')}
                     </div>
                 );
+
             case 'Weapon':
                 return (
                     <div className="grid grid-cols-2 gap-4 bg-slate-800 p-4 rounded border border-slate-700 transition-all animate-in fade-in">

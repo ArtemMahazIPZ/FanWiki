@@ -39,14 +39,25 @@ const resources = {
                 "year": "Year",
                 "region": "Region",
                 "population": "Population",
-                "founded": "Founded"
+                "founded": "Founded",
+
+                "voice_actor": "Voice Actor",
+                "cause_of_death": "Cause of Death",
+                "family": "Family",
+                "allies": "Allies",
+                "enemies": "Enemies",
+                "alignment": "Alignment"
             },
             "meta_values": {
                 "Alive": "Alive",
                 "Deceased": "Deceased",
                 "Unknown": "Unknown",
                 "Male": "Male",
-                "Female": "Female"
+                "Female": "Female",
+
+                "Positive": "Hero",
+                "Negative": "Villain",
+                "Neutral": "Neutral"
             },
             "profile": {
                 "title": "User Profile",
@@ -107,14 +118,25 @@ const resources = {
                 "year": "Рік",
                 "region": "Регіон",
                 "population": "Населення",
-                "founded": "Засновано"
+                "founded": "Засновано",
+
+                "voice_actor": "Голос",
+                "cause_of_death": "Причина смерті",
+                "family": "Сім'я",
+                "allies": "Союзники",
+                "enemies": "Вороги",
+                "alignment": "Характер"
             },
             "meta_values": {
                 "Alive": "Живий",
                 "Deceased": "Мертвий",
                 "Unknown": "Невідомо",
                 "Male": "Чоловік",
-                "Female": "Жінка"
+                "Female": "Жінка",
+
+                "Positive": "Герой",
+                "Negative": "Лиходій",
+                "Neutral": "Нейтральний"
             },
             "profile": {
                 "title": "Профіль користувача",
