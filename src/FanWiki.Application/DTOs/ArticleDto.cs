@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http; 
+﻿using Microsoft.AspNetCore.Http;
 
 namespace FanWiki.Application.DTOs;
 
@@ -12,7 +12,8 @@ public record ArticleDto(
     string? ImageUrl,       
     string Category,   
     DateTime CreatedAt,
-    string? Metadata
+    string? Metadata,
+    string? Alignment 
 );
 
 public class CreateArticleDto
@@ -24,6 +25,7 @@ public class CreateArticleDto
     public required string LanguageCode { get; set; }
     
     public string Category { get; set; } = "Character"; 
+    public string? Alignment { get; set; } 
     
     public IFormFile? Image { get; set; } 
     public string? Metadata { get; set; }

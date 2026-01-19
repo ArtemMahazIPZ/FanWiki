@@ -27,7 +27,8 @@ public class WikiService(IArticleRepository repository) : IWikiService
             article.ImageUrl,              
             article.Category.ToString(),   
             article.CreatedAt,
-            article.Metadata 
+            article.Metadata,
+            article.Alignment?.ToString() 
         );
     }
 
@@ -51,13 +52,36 @@ public class WikiService(IArticleRepository repository) : IWikiService
             article.ImageUrl,              
             article.Category.ToString(),   
             article.CreatedAt,
-            article.Metadata
+            article.Metadata,
+            article.Alignment?.ToString() 
         );
     }
 
-    public async Task<List<ArticleDto>> GetAllArticlesAsync(string languageCode, CancellationToken ct)
+    public async Task<List<ArticleDto>> GetAllArticlesAsync(
+        string languageCode, 
+        string? category, 
+        string? alignment, 
+        string sort, 
+        CancellationToken ct)
     {
         var articles = await repository.GetAllAsync(ct);
+        
+        if (!string.IsNullOrEmpty(category) && category != "All")
+        {
+            if (Enum.TryParse<ArticleCategory>(category, true, out var catEnum))
+            {
+                articles = articles.Where(a => a.Category == catEnum).ToList();
+            }
+        }
+
+        if (!string.IsNullOrEmpty(alignment))
+        {
+            if (Enum.TryParse<CharacterAlignment>(alignment, true, out var alignEnum))
+            {
+                articles = articles.Where(a => a.Alignment == alignEnum).ToList();
+            }
+        }
+
         var dtos = new List<ArticleDto>();
 
         foreach (var article in articles)
@@ -77,8 +101,18 @@ public class WikiService(IArticleRepository repository) : IWikiService
                 article.ImageUrl,
                 article.Category.ToString(),
                 article.CreatedAt,
-                article.Metadata 
+                article.Metadata,
+                article.Alignment?.ToString() 
             ));
+        }
+
+        if (sort == "za")
+        {
+            dtos = dtos.OrderByDescending(d => d.Title).ToList();
+        }
+        else
+        {
+            dtos = dtos.OrderBy(d => d.Title).ToList();
         }
 
         return dtos;
@@ -91,12 +125,19 @@ public class WikiService(IArticleRepository repository) : IWikiService
             categoryEnum = ArticleCategory.Character; 
         }
 
+        CharacterAlignment? alignmentEnum = null;
+        if (!string.IsNullOrEmpty(dto.Alignment) && Enum.TryParse<CharacterAlignment>(dto.Alignment, true, out var parsedAlign))
+        {
+            alignmentEnum = parsedAlign;
+        }
+
         var article = new Article
         {
             Slug = dto.Slug,
             IsPublished = true,
             ImageUrl = imagePath,   
             Category = categoryEnum,
+            Alignment = alignmentEnum, 
             Metadata = dto.Metadata, 
             Translations =
             [
@@ -118,7 +159,6 @@ public class WikiService(IArticleRepository repository) : IWikiService
     public async Task UpdateArticleAsync(Guid id, CreateArticleDto dto, string? imagePath, CancellationToken ct)
     {
         var article = await repository.GetByIdAsync(id, ct);
-
         if (article == null) throw new Exception("Article not found");
 
         article.Slug = dto.Slug;
@@ -127,6 +167,15 @@ public class WikiService(IArticleRepository repository) : IWikiService
         if (Enum.TryParse<ArticleCategory>(dto.Category, true, out var categoryEnum))
         {
             article.Category = categoryEnum;
+        }
+        
+        if (!string.IsNullOrEmpty(dto.Alignment) && Enum.TryParse<CharacterAlignment>(dto.Alignment, true, out var alignEnum))
+        {
+            article.Alignment = alignEnum;
+        }
+        else if (string.IsNullOrEmpty(dto.Alignment)) 
+        {
+            article.Alignment = null; 
         }
         
         if (!string.IsNullOrEmpty(imagePath))
@@ -155,7 +204,6 @@ public class WikiService(IArticleRepository repository) : IWikiService
              };
              
              await repository.AddTranslationAsync(newTranslation, ct);
-             
              article.Translations.Add(newTranslation);
         }
 

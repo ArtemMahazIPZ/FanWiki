@@ -9,4 +9,5 @@ export interface Article {
     imageUrl?: string;
     createdAt: string;
     metadata?: string;
+    alignment?: string;
 }
