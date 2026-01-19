@@ -9,7 +9,11 @@ public class Article : BaseEntity
     public bool IsPublished { get; set; } = false;
     
     public string? ImageUrl { get; set; } 
-    public ArticleCategory Category { get; set; }
+    
+    public ArticleCategory Category { get; set; } = ArticleCategory.General;
+    
+    public CharacterAlignment? Alignment { get; set; }
+    
     public string? Metadata { get; set; }
 
     public ICollection<ArticleTranslation> Translations { get; set; } = [];

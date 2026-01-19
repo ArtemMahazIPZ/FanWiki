@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import {TextStyle} from '@tiptap/extension-text-style';
+import { TextStyle } from '@tiptap/extension-text-style';
 import TextAlign from '@tiptap/extension-text-align';
 
 import { api } from '../../api/axios';
@@ -37,6 +37,7 @@ export const ArticleEditor = () => {
         quote: '',
         content: '',
         category: 'Character',
+        alignment: '',
         languageCode: i18n.language
     });
 
@@ -71,7 +72,7 @@ export const ArticleEditor = () => {
 
     useEffect(() => {
         if (isEdit && id) {
-            api.get<Article>(`/Wiki/${id}`).then(res => {
+            api.get<Article>(`/Wiki/${id}?lang=${i18n.language}`).then(res => {
                 const data = res.data;
                 setFormData({
                     title: data.title,
@@ -79,6 +80,7 @@ export const ArticleEditor = () => {
                     quote: data.quote || '',
                     content: data.content,
                     category: data.category,
+                    alignment: data.alignment || '',
                     languageCode: i18n.language
                 });
                 setExistingImage(data.imageUrl || null);
@@ -110,6 +112,11 @@ export const ArticleEditor = () => {
         data.append('Quote', formData.quote);
         data.append('Content', editor?.getHTML() || formData.content);
         data.append('Category', formData.category);
+
+        if (formData.alignment) {
+            data.append('Alignment', formData.alignment);
+        }
+
         data.append('LanguageCode', formData.languageCode);
         data.append('Metadata', JSON.stringify(metadata));
         if (file) data.append('Image', file);
@@ -240,17 +247,35 @@ export const ArticleEditor = () => {
                         />
                     </div>
 
-                    <div>
-                        <label className="block text-xs font-bold text-slate-400 uppercase mb-2">{t('article.category')}</label>
-                        <select className="bg-slate-950 p-3 rounded border border-slate-700 w-full text-white mb-4"
-                                value={formData.category} onChange={handleCategoryChange}>
-                            <option value="Character">{t('categories.Character')}</option>
-                            <option value="Weapon">{t('categories.Weapon')}</option>
-                            <option value="Location">{t('categories.Location')}</option>
-                            <option value="Event">{t('categories.Event')}</option>
-                        </select>
-                        {renderMetadataInputs()}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label className="block text-xs font-bold text-slate-400 uppercase mb-2">{t('article.category')}</label>
+                            <select className="bg-slate-950 p-3 rounded border border-slate-700 w-full text-white"
+                                    value={formData.category} onChange={handleCategoryChange}>
+                                <option value="Character">{t('categories.Character')}</option>
+                                <option value="Weapon">{t('categories.Weapon')}</option>
+                                <option value="Location">{t('categories.Location')}</option>
+                                <option value="Event">{t('categories.Event')}</option>
+                            </select>
+                        </div>
+
+                        {formData.category === 'Character' && (
+                            <div className="animate-in fade-in slide-in-from-left-2">
+                                <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Тип персонажа (Alignment)</label>
+                                <select
+                                    className="bg-slate-950 p-3 rounded border border-slate-700 w-full text-white focus:border-emerald-500"
+                                    value={formData.alignment}
+                                    onChange={e => setFormData({...formData, alignment: e.target.value})}
+                                >
+                                    <option value="">Не вказано / Нейтральний</option>
+                                    <option value="Positive">😇 Позитивний (Hero)</option>
+                                    <option value="Negative">😈 Негативний (Villain)</option>
+                                </select>
+                            </div>
+                        )}
                     </div>
+
+                    {renderMetadataInputs()}
                 </div>
 
                 <div className="bg-slate-900 rounded-xl border border-slate-800 shadow-lg overflow-hidden">

@@ -18,9 +18,14 @@ public class WikiController(IWikiService wikiService, IWebHostEnvironment env) :
     }
     
     [HttpGet]
-    public async Task<IActionResult> GetAll([FromQuery] string lang = "en", CancellationToken ct = default)
+    public async Task<IActionResult> GetAll(
+        [FromQuery] string? category, 
+        [FromQuery] string? alignment, 
+        [FromQuery] string sort = "az",
+        [FromQuery] string lang = "en", 
+        CancellationToken ct = default)
     {
-        var articles = await wikiService.GetAllArticlesAsync(lang, ct);
+        var articles = await wikiService.GetAllArticlesAsync(lang, category, alignment, sort, ct);
         return Ok(articles);
     }
 
@@ -31,7 +36,6 @@ public class WikiController(IWikiService wikiService, IWebHostEnvironment env) :
         if (article is null) return NotFound();
         return Ok(article);
     }
-
 
     [HttpPost]
     [Authorize(Roles = "Admin")] 
@@ -79,6 +83,7 @@ public class WikiController(IWikiService wikiService, IWebHostEnvironment env) :
             return BadRequest(new { message = ex.Message });
         }
     }
+
     [HttpPost("upload-image")]
     [Authorize(Roles = "Admin")] 
     public async Task<IActionResult> UploadArticleImage(IFormFile file)
