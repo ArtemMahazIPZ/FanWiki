@@ -14,6 +14,8 @@ export const HomePage = () => {
     const [selectedAlignment, setSelectedAlignment] = useState<string>(''); // Positive / Negative
     const [sortOrder, setSortOrder] = useState<'az' | 'za'>('az');
 
+    const [selectedGame, setSelectedGame] = useState<string>('');
+
     // Стейт для локального пошуку по назві (Клієнтська фільтрація результатів)
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -33,6 +35,10 @@ export const HomePage = () => {
             params.append('alignment', selectedAlignment);
         }
 
+        if (selectedGame) {
+            params.append('game', selectedGame);
+        }
+
         api.get<Article[]>(`/Wiki?${params.toString()}`)
             .then((response) => {
                 setArticles(response.data);
@@ -41,7 +47,7 @@ export const HomePage = () => {
                 console.error("Помилка завантаження:", error);
             })
             .finally(() => setLoading(false));
-    }, [i18n.language, selectedCategory, selectedAlignment, sortOrder]);
+    }, [i18n.language, selectedCategory, selectedAlignment, sortOrder, selectedGame]);
 
     // Локальний пошук (фільтрує вже отримані від сервера статті)
     const displayArticles = useMemo(() => {
@@ -52,6 +58,14 @@ export const HomePage = () => {
             (a.content && a.content.toLowerCase().includes(lowerTerm))
         );
     }, [articles, searchTerm]);
+
+    // Collect unique game names from all loaded articles for the dropdown
+    const gameNames = useMemo(() => {
+        const names = articles
+            .map(a => a.gameName)
+            .filter((g): g is string => !!g && g.trim() !== '');
+        return [...new Set(names)].sort();
+    }, [articles]);
 
     const handleFilterClick = (cat: string, align: string = '') => {
         setSelectedCategory(cat);
@@ -108,7 +122,7 @@ export const HomePage = () => {
                                 : 'bg-slate-900 text-green-400 border-slate-700 hover:border-green-500/50 hover:bg-green-900/10'
                         }`}
                     >
-                        😇 Герої
+                        😇 {t('home.heroes')}
                     </button>
 
                     <button
@@ -119,7 +133,7 @@ export const HomePage = () => {
                                 : 'bg-slate-900 text-red-400 border-slate-700 hover:border-red-500/50 hover:bg-red-900/10'
                         }`}
                     >
-                        😈 Лиходії
+                        😈 {t('home.villains')}
                     </button>
                     {/* ------------------------- */}
 
@@ -164,16 +178,31 @@ export const HomePage = () => {
                         />
                     </div>
 
+                    {/* Game Filter */}
+                    <div className="flex items-center gap-3 w-full md:w-auto">
+                        <span className="text-slate-400 text-sm font-bold whitespace-nowrap">{t('home.game')}</span>
+                        <select
+                            value={selectedGame}
+                            onChange={(e) => setSelectedGame(e.target.value)}
+                            className="w-full md:w-48 appearance-none block pl-3 pr-8 py-2.5 border border-slate-700 rounded-lg leading-5 bg-slate-950 text-slate-300 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 sm:text-sm transition duration-200 cursor-pointer hover:bg-slate-900"
+                        >
+                            <option value="">{t('home.all_games')}</option>
+                            {gameNames.map(name => (
+                                <option key={name} value={name}>{name}</option>
+                            ))}
+                        </select>
+                    </div>
+
                     {/* Сортування */}
                     <div className="flex items-center gap-3 w-full md:w-auto">
-                        <span className="text-slate-400 text-sm font-bold whitespace-nowrap">Сортування:</span>
+                        <span className="text-slate-400 text-sm font-bold whitespace-nowrap">{t('home.sort')}</span>
                         <select
                             value={sortOrder}
                             onChange={(e) => setSortOrder(e.target.value as 'az' | 'za')}
                             className="w-full md:w-48 appearance-none block pl-3 pr-8 py-2.5 border border-slate-700 rounded-lg leading-5 bg-slate-950 text-slate-300 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 sm:text-sm transition duration-200 cursor-pointer hover:bg-slate-900"
                         >
-                            <option value="az">А → Я (Назва)</option>
-                            <option value="za">Я → А (Назва)</option>
+                            <option value="az">{t('home.sort_az')}</option>
+                            <option value="za">{t('home.sort_za')}</option>
                         </select>
                     </div>
                 </div>
@@ -185,7 +214,7 @@ export const HomePage = () => {
 
             {loading ? (
                 <div className="p-20 text-center text-slate-400 animate-pulse">
-                    Завантаження бібліотеки...
+                    {t('home.loading')}
                 </div>
             ) : displayArticles.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 animate-in fade-in duration-500">
@@ -196,12 +225,12 @@ export const HomePage = () => {
             ) : (
                 <div className="text-center py-20 bg-slate-900/30 rounded-lg border border-slate-800 border-dashed">
                     <p className="text-slate-500 text-xl">{t('home.no_results')}</p>
-                    {(selectedCategory || selectedAlignment) && (
+                    {(selectedCategory || selectedAlignment || selectedGame) && (
                         <button
-                            onClick={() => handleFilterClick('')}
+                            onClick={() => { handleFilterClick(''); setSelectedGame(''); }}
                             className="mt-4 text-emerald-500 hover:text-emerald-400 underline"
                         >
-                            Скинути фільтри
+                            {t('home.reset_filters')}
                         </button>
                     )}
                 </div>

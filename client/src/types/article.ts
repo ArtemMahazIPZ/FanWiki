@@ -10,4 +10,5 @@ export interface Article {
     createdAt: string;
     metadata?: string;
     alignment?: string;
+    gameName?: string;
 }

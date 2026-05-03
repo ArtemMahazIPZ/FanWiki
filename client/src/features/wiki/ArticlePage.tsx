@@ -240,6 +240,9 @@ export const ArticlePage = () => {
                             )}
                         </div>
                         <div className="p-5 space-y-1 text-sm bg-slate-900/50">
+                            {article.gameName && (
+                                <InfoRow label={t('article.game')} value={article.gameName} classNameColor="text-cyan-300" />
+                            )}
                             {renderSidePanelInfo()}
                         </div>
                     </div>

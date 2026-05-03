@@ -1,34 +1,19 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useReports } from '../context/ReportContext';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { useTranslation } from 'react-i18next';
-import { useEffect, useState } from 'react';
-import { api } from '../api/axios';
 
 export const Header = () => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
     const { t } = useTranslation();
-    const [pendingReports, setPendingReports] = useState(0);
+    const { pendingReports } = useReports();
 
     const handleLogout = () => {
         logout();
         navigate('/');
     };
-
-    useEffect(() => {
-        if (user?.role === 'Admin') {
-            const fetchReports = () => {
-                api.get('/Reports/pending-count')
-                    .then(res => setPendingReports(res.data))
-                    .catch(console.error);
-            };
-
-            fetchReports();
-            const interval = setInterval(fetchReports, 30000);
-            return () => clearInterval(interval);
-        }
-    }, [user]);
 
     return (
         <header className="bg-slate-900 border-b border-slate-800 sticky top-0 z-50 backdrop-blur-md bg-opacity-80">

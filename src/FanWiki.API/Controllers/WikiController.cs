@@ -19,13 +19,14 @@ public class WikiController(IWikiService wikiService, IWebHostEnvironment env) :
     
     [HttpGet]
     public async Task<IActionResult> GetAll(
-        [FromQuery] string? category, 
-        [FromQuery] string? alignment, 
+        [FromQuery] string? category,
+        [FromQuery] string? alignment,
         [FromQuery] string sort = "az",
-        [FromQuery] string lang = "en", 
+        [FromQuery] string lang = "en",
+        [FromQuery] string? game = null,
         CancellationToken ct = default)
     {
-        var articles = await wikiService.GetAllArticlesAsync(lang, category, alignment, sort, ct);
+        var articles = await wikiService.GetAllArticlesAsync(lang, category, alignment, sort, game, ct);
         return Ok(articles);
     }
 
