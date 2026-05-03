@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../api/axios';
+import { useReports } from '../../context/ReportContext';
 
 interface Report {
     id: number;
@@ -12,9 +13,11 @@ interface Report {
 
 export const ReportsPage = () => {
     const [reports, setReports] = useState<Report[]>([]);
+    const { refreshPendingReports } = useReports();
 
     useEffect(() => {
         loadReports();
+        refreshPendingReports();
     }, []);
 
     const loadReports = async () => {
@@ -25,6 +28,7 @@ export const ReportsPage = () => {
     const handleStatus = async (id: number, status: 1 | 2) => {
         await api.put(`/Reports/${id}/status`, { status });
         loadReports();
+        refreshPendingReports();
     };
 
     const getStatusBadge = (status: number) => {

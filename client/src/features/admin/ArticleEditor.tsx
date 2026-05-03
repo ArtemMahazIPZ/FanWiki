@@ -45,6 +45,7 @@ export const ArticleEditor = () => {
         content: '',
         category: 'Character',
         alignment: '',
+        gameName: '',
         languageCode: i18n.language
     });
 
@@ -91,6 +92,7 @@ export const ArticleEditor = () => {
                     content: data.content,
                     category: data.category,
                     alignment: data.alignment || '',
+                    gameName: data.gameName || '',
                     languageCode: i18n.language
                 });
                 setExistingImage(data.imageUrl || null);
@@ -194,6 +196,10 @@ export const ArticleEditor = () => {
         data.append('Quote', formData.quote);
         data.append('Content', editor?.getHTML() || formData.content);
         data.append('Category', formData.category);
+
+        if (formData.gameName) {
+            data.append('GameName', formData.gameName);
+        }
 
         if (formData.alignment) {
             data.append('Alignment', formData.alignment);
@@ -389,6 +395,16 @@ export const ArticleEditor = () => {
                                 </select>
                             </div>
                         )}
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-bold text-slate-400 uppercase mb-2">{t('article.game')}</label>
+                        <input
+                            placeholder={t('article.game_placeholder')}
+                            className="bg-slate-950 p-3 rounded border border-slate-700 w-full text-white focus:border-emerald-500 outline-none"
+                            value={formData.gameName}
+                            onChange={e => setFormData({...formData, gameName: e.target.value})}
+                        />
                     </div>
 
                     {renderMetadataInputs()}

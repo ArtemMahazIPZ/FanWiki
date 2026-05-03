@@ -20,7 +20,16 @@ const resources = {
                 "search_placeholder": "Search articles...",
                 "found": "Articles found:",
                 "read_more": "READ MORE",
-                "no_results": "Nothing found 🕵️‍♂️"
+                "no_results": "Nothing found 🕵️‍♂️",
+                "heroes": "Heroes",
+                "villains": "Villains",
+                "sort": "Sort:",
+                "sort_az": "A → Z (Name)",
+                "sort_za": "Z → A (Name)",
+                "game": "Game:",
+                "all_games": "All Games",
+                "loading": "Loading library...",
+                "reset_filters": "Reset filters"
             },
             "categories": {
                 "All": "All Categories",
@@ -41,6 +50,8 @@ const resources = {
                 "population": "Population",
                 "founded": "Founded",
 
+                "game": "Game",
+                "game_placeholder": "e.g. The Witcher 3, Cyberpunk 2077...",
                 "voice_actor": "Voice Actor",
                 "cause_of_death": "Cause of Death",
                 "family": "Family",
@@ -99,7 +110,16 @@ const resources = {
                 "search_placeholder": "Пошук статей...",
                 "found": "Знайдено статей:",
                 "read_more": "ЧИТАТИ",
-                "no_results": "Нічого не знайдено 🕵️‍♂️"
+                "no_results": "Нічого не знайдено 🕵️‍♂️",
+                "heroes": "Герої",
+                "villains": "Лиходії",
+                "sort": "Сортування:",
+                "sort_az": "А → Я (Назва)",
+                "sort_za": "Я → А (Назва)",
+                "game": "Гра:",
+                "all_games": "Всі ігри",
+                "loading": "Завантаження бібліотеки...",
+                "reset_filters": "Скинути фільтри"
             },
             "categories": {
                 "All": "Всі категорії",
@@ -120,6 +140,8 @@ const resources = {
                 "population": "Населення",
                 "founded": "Засновано",
 
+                "game": "Гра",
+                "game_placeholder": "напр. Відьмак 3, Cyberpunk 2077...",
                 "voice_actor": "Голос",
                 "cause_of_death": "Причина смерті",
                 "family": "Сім'я",

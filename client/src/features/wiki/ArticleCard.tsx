@@ -27,8 +27,15 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
                         <svg className="w-12 h-12 opacity-20" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zm-5-7l-3 3.72L9 13l-3 4h12l-4-5z"/></svg>
                     </div>
                 )}
-                <div className="absolute top-3 right-3 bg-emerald-900/80 backdrop-blur-sm text-emerald-400 text-xs font-bold px-2 py-1 rounded border border-emerald-500/30 uppercase tracking-wider">
-                    {article.category}
+                <div className="absolute top-3 right-3 flex flex-col items-end gap-1">
+                    <span className="bg-emerald-900/80 backdrop-blur-sm text-emerald-400 text-xs font-bold px-2 py-1 rounded border border-emerald-500/30 uppercase tracking-wider">
+                        {article.category}
+                    </span>
+                    {article.gameName && (
+                        <span className="bg-cyan-900/80 backdrop-blur-sm text-cyan-300 text-xs font-bold px-2 py-1 rounded border border-cyan-500/30 tracking-wider">
+                            {article.gameName}
+                        </span>
+                    )}
                 </div>
             </div>
 

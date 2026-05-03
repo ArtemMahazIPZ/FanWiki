@@ -3,17 +3,18 @@
 namespace FanWiki.Application.DTOs;
 
 public record ArticleDto(
-    Guid Id, 
+    Guid Id,
     string Slug,
     string Title,
     string Content,
-    string? Quote, 
+    string? Quote,
     string LanguageCode,
-    string? ImageUrl,       
-    string Category,   
+    string? ImageUrl,
+    string Category,
     DateTime CreatedAt,
     string? Metadata,
-    string? Alignment 
+    string? Alignment,
+    string? GameName
 );
 
 public class CreateArticleDto
@@ -24,9 +25,10 @@ public class CreateArticleDto
     public required string Content { get; set; }
     public required string LanguageCode { get; set; }
     
-    public string Category { get; set; } = "Character"; 
-    public string? Alignment { get; set; } 
-    
-    public IFormFile? Image { get; set; } 
+    public string Category { get; set; } = "Character";
+    public string? Alignment { get; set; }
+    public string? GameName { get; set; }
+
+    public IFormFile? Image { get; set; }
     public string? Metadata { get; set; }
 }

@@ -25,10 +25,11 @@ public class WikiService(IArticleRepository repository) : IWikiService
             translation.Quote, 
             translation.LanguageCode,
             article.ImageUrl,              
-            article.Category.ToString(),   
+            article.Category.ToString(),
             article.CreatedAt,
             article.Metadata,
-            article.Alignment?.ToString() 
+            article.Alignment?.ToString(),
+            article.GameName
         );
     }
 
@@ -50,18 +51,20 @@ public class WikiService(IArticleRepository repository) : IWikiService
             translation.Quote, 
             translation.LanguageCode,
             article.ImageUrl,              
-            article.Category.ToString(),   
+            article.Category.ToString(),
             article.CreatedAt,
             article.Metadata,
-            article.Alignment?.ToString() 
+            article.Alignment?.ToString(),
+            article.GameName
         );
     }
 
     public async Task<List<ArticleDto>> GetAllArticlesAsync(
-        string languageCode, 
-        string? category, 
-        string? alignment, 
-        string sort, 
+        string languageCode,
+        string? category,
+        string? alignment,
+        string sort,
+        string? game,
         CancellationToken ct)
     {
         var articles = await repository.GetAllAsync(ct);
@@ -80,6 +83,13 @@ public class WikiService(IArticleRepository repository) : IWikiService
             {
                 articles = articles.Where(a => a.Alignment == alignEnum).ToList();
             }
+        }
+
+        if (!string.IsNullOrEmpty(game))
+        {
+            articles = articles.Where(a =>
+                !string.IsNullOrEmpty(a.GameName) &&
+                a.GameName.Equals(game, StringComparison.OrdinalIgnoreCase)).ToList();
         }
 
         var dtos = new List<ArticleDto>();
@@ -102,7 +112,8 @@ public class WikiService(IArticleRepository repository) : IWikiService
                 article.Category.ToString(),
                 article.CreatedAt,
                 article.Metadata,
-                article.Alignment?.ToString() 
+                article.Alignment?.ToString(),
+                article.GameName
             ));
         }
 
@@ -135,10 +146,11 @@ public class WikiService(IArticleRepository repository) : IWikiService
         {
             Slug = dto.Slug,
             IsPublished = true,
-            ImageUrl = imagePath,   
+            ImageUrl = imagePath,
             Category = categoryEnum,
-            Alignment = alignmentEnum, 
-            Metadata = dto.Metadata, 
+            Alignment = alignmentEnum,
+            GameName = dto.GameName,
+            Metadata = dto.Metadata,
             Translations =
             [
                 new ArticleTranslation
@@ -162,7 +174,8 @@ public class WikiService(IArticleRepository repository) : IWikiService
         if (article == null) throw new Exception("Article not found");
 
         article.Slug = dto.Slug;
-        article.Metadata = dto.Metadata; 
+        article.Metadata = dto.Metadata;
+        article.GameName = dto.GameName;
 
         if (Enum.TryParse<ArticleCategory>(dto.Category, true, out var categoryEnum))
         {

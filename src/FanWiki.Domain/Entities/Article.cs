@@ -13,7 +13,9 @@ public class Article : BaseEntity
     public ArticleCategory Category { get; set; } = ArticleCategory.General;
     
     public CharacterAlignment? Alignment { get; set; }
-    
+
+    public string? GameName { get; set; }
+
     public string? Metadata { get; set; }
 
     public ICollection<ArticleTranslation> Translations { get; set; } = [];
