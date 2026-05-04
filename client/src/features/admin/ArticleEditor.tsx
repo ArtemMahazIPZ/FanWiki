@@ -5,6 +5,7 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { TextStyle } from '@tiptap/extension-text-style';
 import TextAlign from '@tiptap/extension-text-align';
+import Link from '@tiptap/extension-link';
 
 import { api } from '../../api/axios';
 import type { Article } from '../../types/article';
@@ -68,6 +69,12 @@ export const ArticleEditor = () => {
             CustomImage,
             TextAlign.configure({
                 types: ['heading', 'paragraph', 'image'],
+            }),
+            Link.configure({
+                openOnClick: false,
+                HTMLAttributes: {
+                    class: 'text-emerald-400 underline hover:text-emerald-300 cursor-pointer',
+                },
             }),
         ],
         content: formData.content,

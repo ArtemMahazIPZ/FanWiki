@@ -1,14 +1,16 @@
 import { Editor } from '@tiptap/react';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import {
     Bold, Italic, Strikethrough,
     Heading1, Heading2, List, ListOrdered, Quote,
     Undo, Redo, Image as ImageIcon,
     Type, Monitor, Smartphone,
-    AlignLeft, AlignCenter, AlignRight, AlignJustify
+    AlignLeft, AlignCenter, AlignRight, AlignJustify,
+    Link2, Unlink
 } from 'lucide-react';
 import { cn } from '../../utils/cn';
 import { api } from '../../api/axios';
+import { ArticleLinkModal } from './ArticleLinkModal';
 
 interface EditorToolbarProps {
     editor: Editor | null;
@@ -31,6 +33,7 @@ const MenuButton = ({ isActive, onClick, children, title }: any) => (
 
 export const EditorToolbar = ({ editor }: EditorToolbarProps) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [showLinkModal, setShowLinkModal] = useState(false);
 
     if (!editor) return null;
 
@@ -69,6 +72,12 @@ export const EditorToolbar = ({ editor }: EditorToolbarProps) => {
 
     const setWidth = (width: string) => {
         editor.chain().focus().updateAttributes('image', { width }).run();
+    };
+
+    const handleArticleLink = (slug: string) => {
+        const url = `/wiki/${slug}`;
+        editor.chain().focus().setLink({ href: url }).run();
+        setShowLinkModal(false);
     };
 
     return (
@@ -138,6 +147,24 @@ export const EditorToolbar = ({ editor }: EditorToolbarProps) => {
                     </div>
                 )}
             </div>
+
+            <div className="flex gap-1 border-l border-slate-700 pl-2 ml-2">
+                <MenuButton onClick={() => setShowLinkModal(true)} isActive={editor.isActive('link')} title="Link to Article">
+                    <Link2 size={18} />
+                </MenuButton>
+                {editor.isActive('link') && (
+                    <MenuButton onClick={() => editor.chain().focus().unsetLink().run()} title="Remove Link">
+                        <Unlink size={18} />
+                    </MenuButton>
+                )}
+            </div>
+
+            {showLinkModal && (
+                <ArticleLinkModal
+                    onSelect={handleArticleLink}
+                    onClose={() => setShowLinkModal(false)}
+                />
+            )}
         </div>
     );
 };
