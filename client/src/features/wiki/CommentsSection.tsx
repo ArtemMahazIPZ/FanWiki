@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
-import { useTranslation } from 'react-i18next';
+import { useTranslation, Trans } from 'react-i18next';
 import { ThumbsUp, ThumbsDown, CornerDownRight, Trash2, Ban } from 'lucide-react';
 
 interface Comment {
@@ -181,9 +181,11 @@ export const CommentsSection = ({ articleId }: { articleId: string }) => {
                 </div>
             ) : (
                 <div className="bg-slate-900/50 border border-slate-800/80 rounded-xl p-8 text-center text-slate-400 mb-10 backdrop-blur-md shadow-lg">
-                    {t('comments.login_to_comment', {
-                        login: <Link to="/login" className="text-emerald-400 hover:text-emerald-300 underline underline-offset-4 font-bold transition">{t('comments.login_link')}</Link>
-                    })}
+                    <Trans i18nKey="comments.login_to_comment"
+                        components={{
+                            login: <Link to="/login" className="text-emerald-400 hover:text-emerald-300 underline underline-offset-4 font-bold transition" />
+                        }}
+                    />
                 </div>
             )}
 
