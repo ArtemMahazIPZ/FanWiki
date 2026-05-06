@@ -40,7 +40,7 @@ export const Header = () => {
                                     <Link
                                         to="/admin/reports"
                                         className="relative p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-full transition"
-                                        title="Центр скарг"
+                                        title={t('admin.reports_center')}
                                     >
                                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
 
@@ -52,7 +52,7 @@ export const Header = () => {
                                     </Link>
 
                                     <Link to="/admin" className="hidden md:block px-3 py-1 rounded bg-indigo-600/20 text-indigo-400 border border-indigo-500/50 hover:bg-indigo-600 hover:text-white text-xs font-bold uppercase tracking-wider transition">
-                                        Admin Panel
+                                        {t('nav.admin')}
                                     </Link>
                                 </div>
                             )}

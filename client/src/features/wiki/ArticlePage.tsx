@@ -66,8 +66,13 @@ export const ArticlePage = () => {
     const [article, setArticle] = useState<Article | null>(null);
     const [meta, setMeta] = useState<ArticleMetadata>({});
 
-    const tv = (val?: string | number) => {
+    const tv = (val?: string | number, gender?: string) => {
         if (!val) return undefined;
+        if (gender === 'Female') {
+            const femaleKey = `meta_values.${val}_Female`;
+            const femaleVal = t(femaleKey, { defaultValue: '' });
+            if (femaleVal) return femaleVal;
+        }
         return t(`meta_values.${val}`, { defaultValue: val.toString() });
     };
 
@@ -84,18 +89,18 @@ export const ArticlePage = () => {
 
     const handleReport = async () => {
         if (!user) {
-            const wantLogin = confirm("Щоб надіслати скаргу, потрібно увійти. Перейти на сторінку входу?");
+            const wantLogin = confirm(t('auth.report_login_prompt'));
             if (wantLogin) navigate('/login');
             return;
         }
 
-        const reason = prompt("Опишіть проблему:");
+        const reason = prompt(t('auth.report_reason_prompt'));
         if (reason && reason.trim().length > 0) {
             try {
                 await api.post('/Reports', { reason: reason, targetUrl: window.location.href });
-                alert("Дякуємо! Адміністратор отримав ваше повідомлення.");
+                alert(t('auth.report_success'));
             } catch (error) {
-                alert("Не вдалося відправити скаргу.");
+                alert(t('auth.report_error'));
             }
         }
     };
@@ -115,14 +120,14 @@ export const ArticlePage = () => {
                     <>
                         <InfoRow
                             label={t('article.status')}
-                            value={tv(meta.status)}
+                            value={tv(meta.status, meta.gender)}
                             classNameColor={getStatusColor(meta.status)}
                         />
 
                         {meta.status === 'Deceased' && meta.causeOfDeath && (
                             <div className="flex justify-between items-center border-b border-red-900/30 pb-1 mt-2">
                                 <span className="font-bold text-red-400 text-xs uppercase flex items-center gap-1">
-                                    ☠️ {t('article.cause_of_death', { defaultValue: 'Причина' })}
+                                    ☠️ {t('article.cause_of_death')}
                                 </span>
                                 <span className="text-red-200 font-medium text-right text-sm">{meta.causeOfDeath}</span>
                             </div>
@@ -138,10 +143,10 @@ export const ArticlePage = () => {
                             />
                         )}
 
-                        <InfoList label={t('article.family', { defaultValue: "Сім'я" })} items={meta.family} variant="success" />
-                        <InfoList label={t('article.allies', { defaultValue: "Союзники" })} items={meta.allies} variant="success" />
+                        <InfoList label={t('article.family')} items={meta.family} variant="success" />
+                        <InfoList label={t('article.allies')} items={meta.allies} variant="success" />
 
-                        <InfoList label={t('article.enemies', { defaultValue: "Вороги" })} items={meta.enemies} variant="danger" />
+                        <InfoList label={t('article.enemies')} items={meta.enemies} variant="danger" />
                     </>
                 );
             case 'Weapon':
@@ -180,7 +185,7 @@ export const ArticlePage = () => {
                                     article.alignment === 'Negative' ? 'bg-red-900/30 text-red-400 border-red-800' :
                                         'bg-slate-800 text-slate-400 border-slate-700'
                             }`}>
-                                {article.alignment === 'Positive' ? '😇 HERO' : article.alignment === 'Negative' ? '😈 VILLAIN' : 'NEUTRAL'}
+                                {article.alignment === 'Positive' ? `😇 ${tv('Positive', meta.gender)?.toUpperCase()}` : article.alignment === 'Negative' ? `😈 ${tv('Negative', meta.gender)?.toUpperCase()}` : tv('Neutral', meta.gender)?.toUpperCase()}
                             </span>
                         )}
                     </div>
@@ -218,7 +223,7 @@ export const ArticlePage = () => {
                             className="text-slate-500 hover:text-red-400 text-xs uppercase font-bold tracking-wider flex items-center gap-2 transition duration-200"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                            Повідомити про помилку
+                            {t('auth.report_button')}
                         </button>
                     </div>
                 </div>

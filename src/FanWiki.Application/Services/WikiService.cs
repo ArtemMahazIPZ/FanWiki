@@ -18,16 +18,16 @@ public class WikiService(IArticleRepository repository) : IWikiService
         if (translation is null) return null;
 
         return new ArticleDto(
-            article.Id,             
-            article.Slug, 
-            translation.Title, 
+            article.Id,
+            article.Slug,
+            translation.Title,
             translation.Content,
-            translation.Quote, 
+            translation.Quote,
             translation.LanguageCode,
-            article.ImageUrl,              
+            article.ImageUrl,
             article.Category.ToString(),
             article.CreatedAt,
-            article.Metadata,
+            translation.Metadata,
             article.Alignment?.ToString(),
             article.GameName
         );
@@ -38,22 +38,22 @@ public class WikiService(IArticleRepository repository) : IWikiService
         var article = await repository.GetByIdAsync(id, ct);
         if (article is null) return null;
 
-        var translation = article.Translations.FirstOrDefault(t => t.LanguageCode == languageCode) 
+        var translation = article.Translations.FirstOrDefault(t => t.LanguageCode == languageCode)
                           ?? article.Translations.FirstOrDefault();
 
         if (translation is null) return null;
 
         return new ArticleDto(
-            article.Id,            
-            article.Slug, 
-            translation.Title, 
+            article.Id,
+            article.Slug,
+            translation.Title,
             translation.Content,
-            translation.Quote, 
+            translation.Quote,
             translation.LanguageCode,
-            article.ImageUrl,              
+            article.ImageUrl,
             article.Category.ToString(),
             article.CreatedAt,
-            article.Metadata,
+            translation.Metadata,
             article.Alignment?.ToString(),
             article.GameName
         );
@@ -102,16 +102,16 @@ public class WikiService(IArticleRepository repository) : IWikiService
             if (translation == null) continue;
 
             dtos.Add(new ArticleDto(
-                article.Id,         
-                article.Slug, 
-                translation.Title, 
-                translation.Content, 
-                translation.Quote, 
+                article.Id,
+                article.Slug,
+                translation.Title,
+                translation.Content,
+                translation.Quote,
                 translation.LanguageCode,
                 article.ImageUrl,
                 article.Category.ToString(),
                 article.CreatedAt,
-                article.Metadata,
+                translation.Metadata,
                 article.Alignment?.ToString(),
                 article.GameName
             ));
@@ -150,7 +150,6 @@ public class WikiService(IArticleRepository repository) : IWikiService
             Category = categoryEnum,
             Alignment = alignmentEnum,
             GameName = dto.GameName,
-            Metadata = dto.Metadata,
             Translations =
             [
                 new ArticleTranslation
@@ -158,7 +157,8 @@ public class WikiService(IArticleRepository repository) : IWikiService
                     LanguageCode = dto.LanguageCode,
                     Title = dto.Title,
                     Content = dto.Content,
-                    Quote = dto.Quote 
+                    Quote = dto.Quote,
+                    Metadata = dto.Metadata
                 }
             ]
         };
@@ -174,7 +174,6 @@ public class WikiService(IArticleRepository repository) : IWikiService
         if (article == null) throw new Exception("Article not found");
 
         article.Slug = dto.Slug;
-        article.Metadata = dto.Metadata;
         article.GameName = dto.GameName;
 
         if (Enum.TryParse<ArticleCategory>(dto.Category, true, out var categoryEnum))
@@ -203,17 +202,19 @@ public class WikiService(IArticleRepository repository) : IWikiService
             translation.Title = dto.Title;
             translation.Content = dto.Content;
             translation.Quote = dto.Quote;
+            translation.Metadata = dto.Metadata;
         }
         else
         {
              var newTranslation = new ArticleTranslation
              {
-                 Id = Guid.NewGuid(), 
-                 ArticleId = article.Id, 
+                 Id = Guid.NewGuid(),
+                 ArticleId = article.Id,
                  LanguageCode = dto.LanguageCode,
                  Title = dto.Title,
                  Content = dto.Content,
-                 Quote = dto.Quote 
+                 Quote = dto.Quote,
+                 Metadata = dto.Metadata
              };
              
              await repository.AddTranslationAsync(newTranslation, ct);

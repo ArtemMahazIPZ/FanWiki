@@ -3,9 +3,11 @@ import { api } from '../../api/axios';
 import { generatePassword } from '../../utils/passwordGenerator';
 import { useNavigate } from 'react-router-dom';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { useTranslation } from 'react-i18next';
 
 export const RegisterPage = () => {
     const navigate = useNavigate();
+    const { t } = useTranslation();
 
     const [step, setStep] = useState<1 | 2>(1);
 
@@ -33,7 +35,7 @@ export const RegisterPage = () => {
             await api.post('/Auth/register', formData);
             setStep(2);
         } catch (error: any) {
-            const msg = error.response?.data?.description || "Помилка реєстрації";
+            const msg = error.response?.data?.description || t('auth.register_error');
             alert(msg);
         }
     };
@@ -45,10 +47,10 @@ export const RegisterPage = () => {
                 email: formData.email,
                 code: verificationCode
             });
-            alert("Пошта підтверджена! Тепер увійдіть.");
+            alert(t('auth.email_verified'));
             navigate('/login');
         } catch (error) {
-            alert("Невірний код або помилка сервера");
+            alert(t('auth.verify_error'));
         }
     };
 
@@ -56,14 +58,14 @@ export const RegisterPage = () => {
         <div className="min-h-screen flex items-center justify-center bg-slate-950 p-4">
             <div className="bg-slate-900 p-8 rounded-xl border border-slate-800 w-full max-w-md space-y-4">
                 <h2 className="text-2xl font-bold text-emerald-400 text-center">
-                    {step === 1 ? "Приєднатися до FanWiki" : "Перевірка пошти"}
+                    {step === 1 ? t('auth.register_title') : t('auth.verify_title')}
                 </h2>
 
                 {step === 1 ? (
                     <form onSubmit={handleSubmitRegister} className="space-y-4">
                         <input
                             className="w-full bg-slate-800 p-3 rounded text-white border border-slate-700 focus:border-emerald-500 outline-none"
-                            placeholder="Логін (Username)"
+                            placeholder={t('auth.username_placeholder_reg')}
                             value={formData.username}
                             onChange={e => setFormData({...formData, username: e.target.value})}
                             required
@@ -71,7 +73,7 @@ export const RegisterPage = () => {
 
                         <input
                             className="w-full bg-slate-800 p-3 rounded text-white border border-slate-700"
-                            placeholder="Email" type="email"
+                            placeholder={t('auth.email_placeholder')} type="email"
                             value={formData.email}
                             onChange={e => setFormData({...formData, email: e.target.value})}
                             required
@@ -79,7 +81,7 @@ export const RegisterPage = () => {
 
                         <input
                             className="w-full bg-slate-800 p-3 rounded text-white border border-slate-700"
-                            placeholder="Нікнейм (відображається всім)"
+                            placeholder={t('auth.nickname_placeholder')}
                             value={formData.nickname}
                             onChange={e => setFormData({...formData, nickname: e.target.value})}
                         />
@@ -88,8 +90,8 @@ export const RegisterPage = () => {
                             <div className="relative w-full">
                                 <input
                                     className="w-full bg-slate-800 p-3 rounded text-white border border-slate-700 pr-10"
-                                    placeholder="Пароль"
-                                    type={showPassword ? "text" : "password"} // ТУТ МАГІЯ
+                                    placeholder={t('auth.password_placeholder')}
+                                    type={showPassword ? "text" : "password"}
                                     value={formData.password}
                                     onChange={e => setFormData({...formData, password: e.target.value})}
                                     required
@@ -107,21 +109,21 @@ export const RegisterPage = () => {
                                 type="button"
                                 onClick={handleGenerate}
                                 className="bg-slate-700 hover:bg-slate-600 px-3 rounded text-sm font-bold text-emerald-300"
-                                title="Згенерувати пароль"
+                                title={t('editor.generate_password')}
                             >
                                 🎲
                             </button>
                         </div>
 
                         <button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-500 py-3 rounded font-bold text-white transition">
-                            Створити акаунт
+                            {t('auth.create_account')}
                         </button>
                     </form>
                 ) : (
                     <form onSubmit={handleSubmitVerify} className="space-y-4">
                         <p className="text-slate-300 text-center text-sm">
-                            Ми надіслали код на <b>{formData.email}</b>.
-                            <br/> (Перевір консоль бекенду, якщо немає SMTP)
+                            {t('auth.verify_sent')} <b>{formData.email}</b>.
+                            <br/> {t('auth.verify_hint')}
                         </p>
 
                         <input
@@ -134,7 +136,7 @@ export const RegisterPage = () => {
                         />
 
                         <button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-500 py-3 rounded font-bold text-white transition">
-                            Підтвердити
+                            {t('auth.verify_button')}
                         </button>
 
                         <button
@@ -142,14 +144,14 @@ export const RegisterPage = () => {
                             onClick={() => setStep(1)}
                             className="w-full text-slate-500 text-sm hover:text-slate-300"
                         >
-                            Назад до реєстрації
+                            {t('auth.back_to_register')}
                         </button>
                     </form>
                 )}
 
                 {step === 1 && (
                     <div className="text-center text-sm text-slate-500 mt-4">
-                        Забули пароль? <span className="text-emerald-500 cursor-pointer">Відновити</span>
+                        {t('auth.forgot_password')} <span className="text-emerald-500 cursor-pointer" onClick={() => navigate('/forgot-password')}>{t('auth.restore')}</span>
                     </div>
                 )}
             </div>

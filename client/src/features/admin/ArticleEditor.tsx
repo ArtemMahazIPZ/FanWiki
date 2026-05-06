@@ -166,7 +166,7 @@ export const ArticleEditor = () => {
                         onClick={() => addListItem(field)}
                         className="text-emerald-400 hover:text-emerald-300 text-xs px-2 py-1 bg-emerald-900/30 rounded"
                     >
-                        + Додати
+                        {t('editor.add')}
                     </button>
                 </label>
                 <div className="space-y-2">
@@ -182,13 +182,12 @@ export const ArticleEditor = () => {
                                 type="button"
                                 onClick={() => removeListItem(field, index)}
                                 className="text-red-400 hover:text-red-300 px-2"
-                                title="Видалити"
                             >
                                 ✕
                             </button>
                         </div>
                     ))}
-                    {items.length === 0 && <span className="text-slate-600 text-xs italic">Список порожній</span>}
+                    {items.length === 0 && <span className="text-slate-600 text-xs italic">{t('editor.list_empty')}</span>}
                 </div>
             </div>
         );
@@ -229,8 +228,8 @@ export const ArticleEditor = () => {
         } catch (error: unknown) {
             console.error(error);
             const err = error as { response?: { data?: { message?: string } } };
-            const message = err.response?.data?.message || "Невідома помилка";
-            alert(`Не вдалося зберегти: ${message}`);
+            const message = err.response?.data?.message || t('editor.unknown_error');
+            alert(`${t('editor.save_error')}: ${message}`);
         }
     };
 
@@ -246,9 +245,9 @@ export const ArticleEditor = () => {
                                 value={metadata.status || 'Alive'}
                                 onChange={e => setMetadata({...metadata, status: e.target.value})}
                             >
-                                <option value="Alive">Alive (Живий)</option>
-                                <option value="Deceased">Deceased (Мертвий)</option>
-                                <option value="Unknown">Unknown (Невідомо)</option>
+                                <option value="Alive">{t('meta_values.Alive')}</option>
+                                <option value="Deceased">{t('meta_values.Deceased')}</option>
+                                <option value="Unknown">{t('meta_values.Unknown')}</option>
                             </select>
                         </div>
 
@@ -259,17 +258,17 @@ export const ArticleEditor = () => {
                                 value={metadata.gender || 'Unknown'}
                                 onChange={e => setMetadata({...metadata, gender: e.target.value})}
                             >
-                                <option value="Male">Male</option>
-                                <option value="Female">Female</option>
-                                <option value="Unknown">Unknown</option>
+                                <option value="Male">{t('meta_values.Male')}</option>
+                                <option value="Female">{t('meta_values.Female')}</option>
+                                <option value="Unknown">{t('meta_values.Unknown')}</option>
                             </select>
                         </div>
 
                         {metadata.status === 'Deceased' && (
                             <div className="col-span-1 md:col-span-2 animate-in slide-in-from-top-2">
-                                <label className="text-xs text-red-400 uppercase font-bold">☠️ Причина смерті</label>
+                                <label className="text-xs text-red-400 uppercase font-bold">☠️ {t('article.cause_of_death')}</label>
                                 <input
-                                    placeholder="Як загинув персонаж?"
+                                    placeholder={t('editor.cause_placeholder')}
                                     className="w-full bg-slate-950 p-2 rounded border border-red-900/50 mt-1 outline-none focus:border-red-500"
                                     value={metadata.causeOfDeath || ''}
                                     onChange={e => setMetadata({...metadata, causeOfDeath: e.target.value})}
@@ -278,18 +277,18 @@ export const ArticleEditor = () => {
                         )}
 
                         <div className="col-span-1 md:col-span-2">
-                            <label className="text-xs text-slate-400 uppercase font-bold">🎙️ Актор озвучування</label>
+                            <label className="text-xs text-slate-400 uppercase font-bold">🎙️ {t('editor.voice_actor_label')}</label>
                             <input
-                                placeholder="Ім'я актора"
+                                placeholder={t('editor.voice_actor_placeholder')}
                                 className="w-full bg-slate-950 p-2 rounded border border-slate-600 mt-1 outline-none focus:border-emerald-500"
                                 value={metadata.voiceActor || ''}
                                 onChange={e => setMetadata({...metadata, voiceActor: e.target.value})}
                             />
                         </div>
 
-                        {renderListInput("Сім'я", 'family')}
-                        {renderListInput("Союзники", 'allies')}
-                        {renderListInput("Вороги", 'enemies')}
+                        {renderListInput(t('article.family'), 'family')}
+                        {renderListInput(t('article.allies'), 'allies')}
+                        {renderListInput(t('article.enemies'), 'enemies')}
                     </div>
                 );
 
@@ -303,17 +302,17 @@ export const ArticleEditor = () => {
                         </div>
                         <div>
                             <label className="text-xs text-slate-400 uppercase font-bold">{t('article.year')}</label>
-                            <input placeholder="Year" type="number" className="w-full bg-slate-950 p-2 rounded border border-slate-600 mt-1 outline-none focus:border-emerald-500"
+                            <input placeholder={t('article.year')} type="number" className="w-full bg-slate-950 p-2 rounded border border-slate-600 mt-1 outline-none focus:border-emerald-500"
                                    value={metadata.year || ''} onChange={e => setMetadata({...metadata, year: e.target.value})} />
                         </div>
                         <div>
                             <label className="text-xs text-slate-400 uppercase font-bold">{t('article.ammo')}</label>
-                            <input placeholder="Ammo" type="number" className="w-full bg-slate-950 p-2 rounded border border-slate-600 mt-1 outline-none focus:border-emerald-500"
+                            <input placeholder={t('article.ammo')} type="number" className="w-full bg-slate-950 p-2 rounded border border-slate-600 mt-1 outline-none focus:border-emerald-500"
                                    value={metadata.ammo || ''} onChange={e => setMetadata({...metadata, ammo: e.target.value})} />
                         </div>
                         <div>
-                            <label className="text-xs text-slate-400 uppercase font-bold">RPM</label>
-                            <input placeholder="Rate of Fire" type="number" className="w-full bg-slate-950 p-2 rounded border border-slate-600 mt-1 outline-none focus:border-emerald-500"
+                            <label className="text-xs text-slate-400 uppercase font-bold">{t('article.fire_rate')}</label>
+                            <input placeholder={t('editor.rate_of_fire')} type="number" className="w-full bg-slate-950 p-2 rounded border border-slate-600 mt-1 outline-none focus:border-emerald-500"
                                    value={metadata.fireRate || ''} onChange={e => setMetadata({...metadata, fireRate: e.target.value})} />
                         </div>
                     </div>
@@ -323,7 +322,7 @@ export const ArticleEditor = () => {
                     <div className="grid grid-cols-2 gap-4 bg-slate-800 p-4 rounded border border-slate-700 transition-all animate-in fade-in">
                         <div>
                             <label className="text-xs text-slate-400 uppercase font-bold">{t('article.region')}</label>
-                            <input placeholder="Region Name" className="w-full bg-slate-950 p-2 rounded border border-slate-600 mt-1 outline-none focus:border-emerald-500"
+                            <input placeholder={t('editor.region_placeholder')} className="w-full bg-slate-950 p-2 rounded border border-slate-600 mt-1 outline-none focus:border-emerald-500"
                                    value={metadata.region || ''} onChange={e => setMetadata({...metadata, region: e.target.value})} />
                         </div>
                         <div>
@@ -333,7 +332,7 @@ export const ArticleEditor = () => {
                         </div>
                         <div>
                             <label className="text-xs text-slate-400 uppercase font-bold">{t('article.founded')}</label>
-                            <input placeholder="Year" type="number" className="w-full bg-slate-950 p-2 rounded border border-slate-600 mt-1 outline-none focus:border-emerald-500"
+                            <input placeholder={t('article.year')} type="number" className="w-full bg-slate-950 p-2 rounded border border-slate-600 mt-1 outline-none focus:border-emerald-500"
                                    value={metadata.founded || ''} onChange={e => setMetadata({...metadata, founded: e.target.value})} />
                         </div>
                     </div>
@@ -345,31 +344,31 @@ export const ArticleEditor = () => {
     return (
         <div className="max-w-5xl mx-auto p-6 mt-4 pb-20">
             <h1 className="text-3xl font-bold mb-8 text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-500">
-                {isEdit ? t('article.edit') : 'Create Article'}
+                {isEdit ? t('article.edit') : t('editor.create_article')}
             </h1>
 
             <form onSubmit={handleSubmit} className="space-y-8">
                 <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-lg space-y-6">
-                    <h2 className="text-xl font-bold text-slate-200 mb-4 flex items-center gap-2">📕 Info ({formData.languageCode.toUpperCase()})</h2>
+                    <h2 className="text-xl font-bold text-slate-200 mb-4 flex items-center gap-2">📕 {t('editor.info_section')} ({formData.languageCode.toUpperCase()})</h2>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Title</label>
+                            <label className="block text-xs font-bold text-slate-400 uppercase mb-2">{t('editor.label_title')}</label>
                             <input required className="bg-slate-950 p-3 rounded border border-slate-700 w-full text-white font-bold text-lg"
                                    value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Slug</label>
+                            <label className="block text-xs font-bold text-slate-400 uppercase mb-2">{t('editor.label_slug')}</label>
                             <input required className="bg-slate-950 p-3 rounded border border-slate-700 w-full text-emerald-400 font-mono text-sm"
                                    value={formData.slug} onChange={e => setFormData({...formData, slug: e.target.value})} />
                         </div>
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Quote</label>
+                        <label className="block text-xs font-bold text-slate-400 uppercase mb-2">{t('editor.label_quote')}</label>
                         <textarea
                             rows={2}
-                            placeholder="Enter a quote..."
+                            placeholder={t('editor.quote_placeholder')}
                             className="bg-slate-950 p-3 rounded border border-slate-700 w-full text-emerald-200 italic focus:border-emerald-500 outline-none resize-none"
                             value={formData.quote}
                             onChange={e => setFormData({...formData, quote: e.target.value})}
@@ -390,15 +389,15 @@ export const ArticleEditor = () => {
 
                         {formData.category === 'Character' && (
                             <div className="animate-in fade-in slide-in-from-left-2">
-                                <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Тип персонажа (Alignment)</label>
+                                <label className="block text-xs font-bold text-slate-400 uppercase mb-2">{t('editor.label_alignment')}</label>
                                 <select
                                     className="bg-slate-950 p-3 rounded border border-slate-700 w-full text-white focus:border-emerald-500"
                                     value={formData.alignment}
                                     onChange={e => setFormData({...formData, alignment: e.target.value})}
                                 >
-                                    <option value="">Не вказано / Нейтральний</option>
-                                    <option value="Positive">😇 Позитивний (Hero)</option>
-                                    <option value="Negative">😈 Негативний (Villain)</option>
+                                    <option value="">{t('editor.alignment_none')}</option>
+                                    <option value="Positive">😇 {t('editor.alignment_positive')}</option>
+                                    <option value="Negative">😈 {t('editor.alignment_negative')}</option>
                                 </select>
                             </div>
                         )}
@@ -417,42 +416,49 @@ export const ArticleEditor = () => {
                     {renderMetadataInputs()}
                 </div>
 
-                <div className="bg-slate-900 rounded-xl border border-slate-800 shadow-lg overflow-hidden">
-                    <div className="p-4 border-b border-slate-800 bg-slate-950/50">
-                        <label className="block text-xs font-bold text-slate-400 uppercase">Content</label>
+                <div className="bg-slate-900 rounded-xl border border-slate-800 shadow-lg">
+                    <div className="p-4 border-b border-slate-800 bg-slate-950/50 rounded-t-xl">
+                        <label className="block text-xs font-bold text-slate-400 uppercase">{t('editor.label_content')}</label>
                     </div>
                     <EditorToolbar editor={editor} />
                     <EditorContent editor={editor} />
                 </div>
 
                 <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-lg">
-                    <h2 className="text-xl font-bold text-slate-200 mb-4 flex items-center gap-2">🖼️ Main Image (Portrait)</h2>
+                    <h2 className="text-xl font-bold text-slate-200 mb-4 flex items-center gap-2">🖼️ {t('editor.label_image')}</h2>
                     <div className="border-2 border-slate-700 border-dashed p-8 rounded-lg text-center hover:bg-slate-800/50 transition group cursor-pointer relative">
                         <input type="file" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onChange={e => setFile(e.target.files?.[0] || null)} />
                         <div className="space-y-2">
-                            <p className="text-lg font-medium text-slate-300">Click to upload</p>
+                            <p className="text-lg font-medium text-slate-300">{t('editor.click_to_upload')}</p>
                         </div>
                     </div>
 
                     {(file || existingImage) && (
                         <div className="mt-6 p-4 bg-slate-950 rounded-lg border border-slate-800 flex gap-4 items-center animate-in fade-in">
                             {file ? (
-                                <div className="w-20 h-20 bg-slate-800 rounded flex items-center justify-center text-slate-500 text-xs">New File</div>
+                                <div className="w-20 h-20 bg-slate-800 rounded flex items-center justify-center text-slate-500 text-xs">{t('editor.new_file')}</div>
                             ) : existingImage && (
                                 <img src={`http://localhost:5122${existingImage}`} alt="Current" className="w-20 h-20 rounded object-cover border border-slate-700"/>
                             )}
                             <div>
-                                <p className="font-bold text-slate-200">Selected:</p>
+                                <p className="font-bold text-slate-200">{t('editor.selected')}</p>
                                 <p className="text-sm text-emerald-400 break-all">{file ? file.name : existingImage}</p>
                             </div>
                         </div>
                     )}
                 </div>
-
-                <button className="w-full bg-emerald-600 hover:bg-emerald-500 py-4 rounded-xl font-bold text-white transition">
-                    Save ({formData.languageCode.toUpperCase()})
-                </button>
             </form>
+
+            <div className="fixed bottom-0 left-0 right-0 z-30 bg-slate-950/90 backdrop-blur-md border-t border-slate-800 p-4">
+                <div className="max-w-5xl mx-auto flex justify-end">
+                    <button
+                        onClick={handleSubmit as any}
+                        className="bg-emerald-600 hover:bg-emerald-500 px-10 py-3 rounded-xl font-bold text-white transition shadow-lg shadow-emerald-900/30"
+                    >
+                        {t('editor.save')} ({formData.languageCode.toUpperCase()})
+                    </button>
+                </div>
+            </div>
         </div>
     );
 };

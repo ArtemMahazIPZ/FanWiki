@@ -13,4 +13,5 @@ public class ArticleTranslation : BaseEntity
     public required string Content { get; set; }
     
     public string? Quote { get; set; }
+    public string? Metadata { get; set; }
 }

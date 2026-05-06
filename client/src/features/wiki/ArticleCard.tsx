@@ -1,17 +1,20 @@
 import { Link } from 'react-router-dom';
 import type {Article} from '../../types/article';
+import { useTranslation } from 'react-i18next';
 
 interface ArticleCardProps {
     article: Article;
 }
 
 export const ArticleCard = ({ article }: ArticleCardProps) => {
+    const { t, i18n } = useTranslation();
+
     const stripHtml = (html: string) => {
         const doc = new DOMParser().parseFromString(html, 'text/html');
         return doc.body.textContent || "";
     };
 
-    const formattedDate = new Date(article.createdAt).toLocaleDateString('uk-UA');
+    const formattedDate = new Date(article.createdAt).toLocaleDateString(i18n.language === 'uk' ? 'uk-UA' : 'en-US');
 
     return (
         <div className="bg-slate-900 rounded-xl overflow-hidden border border-slate-800 hover:border-emerald-500/50 transition group flex flex-col h-full shadow-lg">
@@ -29,7 +32,7 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
                 )}
                 <div className="absolute top-3 right-3 flex flex-col items-end gap-1">
                     <span className="bg-emerald-900/80 backdrop-blur-sm text-emerald-400 text-xs font-bold px-2 py-1 rounded border border-emerald-500/30 uppercase tracking-wider">
-                        {article.category}
+                        {t(`categories.${article.category}`)}
                     </span>
                     {article.gameName && (
                         <span className="bg-cyan-900/80 backdrop-blur-sm text-cyan-300 text-xs font-bold px-2 py-1 rounded border border-cyan-500/30 tracking-wider">
@@ -53,7 +56,7 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
                 <div className="pt-4 mt-auto border-t border-slate-800 flex justify-between items-center text-xs text-slate-500 font-medium">
                     <span>{formattedDate}</span>
                     <Link to={`/wiki/${article.slug}`} className="text-emerald-500 hover:text-emerald-400 flex items-center gap-1 transition">
-                        READ MORE
+                        {t('home.read_more')}
                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                     </Link>
                 </div>
