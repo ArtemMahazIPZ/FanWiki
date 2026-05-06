@@ -44,10 +44,10 @@ export const UserProfilePage = () => {
             }
 
             setFile(null);
-            alert('Аватар оновлено!');
+            alert(t('profile.avatar_updated'));
         } catch (error) {
             console.error(error);
-            alert('Помилка завантаження аватару');
+            alert(t('profile.avatar_error'));
         } finally {
             setAvatarLoading(false);
         }
@@ -64,17 +64,17 @@ export const UserProfilePage = () => {
                 login(res.data.token);
             }
 
-            alert('Профіль оновлено!');
+            alert(t('profile.profile_updated'));
         } catch (error) {
             console.error(error);
-            alert('Помилка оновлення профілю');
+            alert(t('profile.profile_error'));
         } finally {
             setProfileLoading(false);
         }
     };
 
     if (!user) {
-        return <div className="p-10 text-center text-white text-xl">Завантаження...</div>;
+        return <div className="p-10 text-center text-white text-xl">{t('profile.loading')}</div>;
     }
 
     return (
@@ -128,7 +128,7 @@ export const UserProfilePage = () => {
 
                     <div className="pt-4 border-t border-slate-800 flex justify-between items-center">
                         <div>
-                            <span className="text-slate-500 text-sm mr-2">Role: </span>
+                            <span className="text-slate-500 text-sm mr-2">{t('profile.role')}: </span>
                             <span className="text-emerald-400 font-bold uppercase">{user.role}</span>
                         </div>
 
@@ -137,7 +137,7 @@ export const UserProfilePage = () => {
                             disabled={profileLoading || nickname === user.nickname}
                             className="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded font-bold transition"
                         >
-                            {profileLoading ? 'Updating...' : t('profile.save')}
+                            {profileLoading ? t('profile.updating') : t('profile.save')}
                         </button>
                     </div>
                 </div>

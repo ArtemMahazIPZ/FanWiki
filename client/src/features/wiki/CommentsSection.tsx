@@ -41,9 +41,9 @@ export const CommentsSection = ({ articleId }: { articleId: string }) => {
                 const utcDate = error.response.data.expiresAt;
                 const localDate = new Date(utcDate).toLocaleString();
 
-                alert(`${t('comments.user_banned')}. Розбан: ${localDate}`);
+                alert(`${t('comments.user_banned')}. ${t('comments.unban')}: ${localDate}`);
             } else {
-                const msg = error.response?.data?.message || error.response?.data || "Error posting comment";
+                const msg = error.response?.data?.message || error.response?.data || t('comments.error_posting');
                 alert(msg);
             }
         }

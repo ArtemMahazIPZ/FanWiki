@@ -11,6 +11,7 @@ import {
 import { cn } from '../../utils/cn';
 import { api } from '../../api/axios';
 import { ArticleLinkModal } from './ArticleLinkModal';
+import { useTranslation } from 'react-i18next';
 
 interface EditorToolbarProps {
     editor: Editor | null;
@@ -34,6 +35,7 @@ const MenuButton = ({ isActive, onClick, children, title }: any) => (
 export const EditorToolbar = ({ editor }: EditorToolbarProps) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [showLinkModal, setShowLinkModal] = useState(false);
+    const { t } = useTranslation();
 
     if (!editor) return null;
 
@@ -55,7 +57,7 @@ export const EditorToolbar = ({ editor }: EditorToolbarProps) => {
             const fullUrl = `http://localhost:5122${res.data.url}`;
             editor.chain().focus().setImage({ src: fullUrl }).run();
         } catch (error) {
-            alert('Не вдалося завантажити зображення');
+            alert(t('editor.image_upload_error'));
         } finally {
             if (fileInputRef.current) fileInputRef.current.value = '';
         }
@@ -81,7 +83,7 @@ export const EditorToolbar = ({ editor }: EditorToolbarProps) => {
     };
 
     return (
-        <div className="border-b border-slate-700 p-2 flex flex-wrap gap-1 bg-slate-900 sticky top-0 z-10 items-center shadow-md">
+        <div className="border-b border-slate-700 p-2 flex flex-wrap gap-1 bg-slate-900 sticky top-20 z-30 items-center shadow-[0_4px_12px_rgba(0,0,0,0.4)]">
 
             <input
                 type="file"
@@ -117,7 +119,7 @@ export const EditorToolbar = ({ editor }: EditorToolbarProps) => {
                     placeholder="16"
                     onChange={handleFontSizeChange}
                     defaultValue="16"
-                    title="Розмір шрифту (px)"
+                    title={t('editor.font_size')}
                 />
             </div>
 

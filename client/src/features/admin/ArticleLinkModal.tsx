@@ -10,7 +10,7 @@ interface ArticleLinkModalProps {
 }
 
 export const ArticleLinkModal = ({ onSelect, onClose }: ArticleLinkModalProps) => {
-    const { i18n } = useTranslation();
+    const { t, i18n } = useTranslation();
     const [articles, setArticles] = useState<Article[]>([]);
     const [search, setSearch] = useState('');
     const [loading, setLoading] = useState(true);
@@ -32,7 +32,7 @@ export const ArticleLinkModal = ({ onSelect, onClose }: ArticleLinkModalProps) =
                 onClick={e => e.stopPropagation()}
             >
                 <div className="flex items-center justify-between p-4 border-b border-slate-700">
-                    <h3 className="text-lg font-bold text-white">Link to Article</h3>
+                    <h3 className="text-lg font-bold text-white">{t('editor.link_to_article')}</h3>
                     <button onClick={onClose} className="text-slate-400 hover:text-white transition">
                         <X size={20} />
                     </button>
@@ -44,7 +44,7 @@ export const ArticleLinkModal = ({ onSelect, onClose }: ArticleLinkModalProps) =
                         <input
                             autoFocus
                             type="text"
-                            placeholder="Search articles..."
+                            placeholder={t('editor.search_articles')}
                             className="w-full pl-10 pr-3 py-2.5 bg-slate-950 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none text-sm"
                             value={search}
                             onChange={e => setSearch(e.target.value)}
@@ -54,9 +54,9 @@ export const ArticleLinkModal = ({ onSelect, onClose }: ArticleLinkModalProps) =
 
                 <div className="overflow-y-auto flex-1 p-2">
                     {loading ? (
-                        <div className="p-8 text-center text-slate-500 animate-pulse">Loading...</div>
+                        <div className="p-8 text-center text-slate-500 animate-pulse">{t('editor.loading')}</div>
                     ) : filtered.length === 0 ? (
-                        <div className="p-8 text-center text-slate-500">No articles found</div>
+                        <div className="p-8 text-center text-slate-500">{t('editor.no_articles')}</div>
                     ) : (
                         filtered.map(article => (
                             <button
@@ -81,7 +81,7 @@ export const ArticleLinkModal = ({ onSelect, onClose }: ArticleLinkModalProps) =
                                     </div>
                                     <div className="text-slate-500 text-xs truncate">
                                         /wiki/{article.slug}
-                                        <span className="ml-2 text-slate-600">{article.category}</span>
+                                        <span className="ml-2 text-slate-600">{t(`categories.${article.category}`)}</span>
                                     </div>
                                 </div>
                             </button>

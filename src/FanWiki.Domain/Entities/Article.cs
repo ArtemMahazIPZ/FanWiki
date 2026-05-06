@@ -16,7 +16,5 @@ public class Article : BaseEntity
 
     public string? GameName { get; set; }
 
-    public string? Metadata { get; set; }
-
     public ICollection<ArticleTranslation> Translations { get; set; } = [];
 }
