@@ -5,11 +5,20 @@ using FanWiki.Infrastructure;
 using FanWiki.Infrastructure.Data; 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore; 
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddInfrastructure(builder.Configuration);
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader());
+});
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     {
@@ -53,6 +62,9 @@ using (var scope = app.Services.CreateScope())
     var services = scope.ServiceProvider;
     try 
     {
+        var context = services.GetRequiredService<AppDbContext>();
+        await context.Database.MigrateAsync();
+
         await DbInitializer.SeedAsync(services);
     }
     catch (Exception ex)
@@ -70,6 +82,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles(); 
+
+app.UseCors("AllowAll");
 
 app.UseAuthentication(); 
 app.UseAuthorization();
