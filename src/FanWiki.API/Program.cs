@@ -15,11 +15,11 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader());
+        policy.WithOrigins("https://fan-wiki-theta.vercel.app") 
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials()); 
 });
-
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     {
         options.Password.RequireDigit = false;
@@ -82,6 +82,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles(); 
+
+app.UseRouting();
 
 app.UseCors("AllowAll");
 
