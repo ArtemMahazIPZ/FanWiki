@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { api } from '../../api/axios';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { generatePassword } from '../../utils/passwordGenerator';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
 
 export const ResetPasswordPage = () => {
@@ -9,6 +10,7 @@ export const ResetPasswordPage = () => {
     const navigate = useNavigate();
     const { t } = useTranslation();
 
+    const [showPassword, setShowPassword] = useState(false);
     const [formData, setFormData] = useState({
         email: searchParams.get('email') || '',
         token: '',
@@ -17,6 +19,7 @@ export const ResetPasswordPage = () => {
 
     const handleGenerate = () => {
         setFormData({ ...formData, newPassword: generatePassword() });
+        setShowPassword(true);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -50,12 +53,21 @@ export const ResetPasswordPage = () => {
                 />
 
                 <div className="flex gap-2 mb-6">
-                    <input
-                        type="text" placeholder={t('auth.new_password_placeholder')} required
-                        className="w-full bg-slate-950 p-3 rounded-lg text-white border border-slate-700"
-                        value={formData.newPassword}
-                        onChange={e => setFormData({...formData, newPassword: e.target.value})}
-                    />
+                    <div className="relative w-full">
+                        <input
+                            type={showPassword ? "text" : "password"} placeholder={t('auth.new_password_placeholder')} required
+                            className="w-full bg-slate-950 p-3 rounded-lg text-white border border-slate-700 pr-10"
+                            value={formData.newPassword}
+                            onChange={e => setFormData({...formData, newPassword: e.target.value})}
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                        >
+                            {showPassword ? <FaEyeSlash /> : <FaEye />}
+                        </button>
+                    </div>
                     <button type="button" onClick={handleGenerate} className="bg-slate-700 px-3 rounded text-emerald-300">🎲</button>
                 </div>
 

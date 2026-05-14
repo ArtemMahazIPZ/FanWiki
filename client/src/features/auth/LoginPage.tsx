@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 import { useTranslation } from 'react-i18next';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 export const LoginPage = () => {
     const navigate = useNavigate();
@@ -10,6 +11,7 @@ export const LoginPage = () => {
     const { t } = useTranslation();
     const [formData, setFormData] = useState({ username: '', password: '' });
     const [error, setError] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -59,14 +61,23 @@ export const LoginPage = () => {
                         <label className="block text-slate-400 text-xs font-bold mb-2 uppercase">
                             {t('auth.password_label')}
                         </label>
-                        <input
-                            type="password"
-                            className="w-full bg-slate-950 p-3 rounded-lg text-white border border-slate-700 focus:border-emerald-500 outline-none transition placeholder-slate-600"
-                            placeholder="••••••••"
-                            value={formData.password}
-                            onChange={e => setFormData({ ...formData, password: e.target.value })}
-                            required
-                        />
+                        <div className="relative">
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                className="w-full bg-slate-950 p-3 rounded-lg text-white border border-slate-700 focus:border-emerald-500 outline-none transition placeholder-slate-600 pr-10"
+                                placeholder="••••••••"
+                                value={formData.password}
+                                onChange={e => setFormData({ ...formData, password: e.target.value })}
+                                required
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                            >
+                                {showPassword ? <FaEyeSlash /> : <FaEye />}
+                            </button>
+                        </div>
                     </div>
                 </div>
 
