@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../api/axios';
 import { useTranslation } from 'react-i18next';
+import { getImageUrl } from '../../utils/imageUrl';
 
 export const UserProfilePage = () => {
     const { user, login } = useAuth();
@@ -86,7 +87,7 @@ export const UserProfilePage = () => {
                 <div className="flex flex-col items-center gap-4 w-full md:w-auto">
                     <div className="w-40 h-40 rounded-full border-4 border-slate-700 overflow-hidden bg-slate-800 shadow-2xl relative group">
                         <img
-                            src={preview || (user.avatarUrl ? `http://localhost:5122${user.avatarUrl}` : "https://via.placeholder.com/150")}
+                            src={preview || (user.avatarUrl ? getImageUrl(user.avatarUrl) : "https://via.placeholder.com/150")}
                             alt="Avatar"
                             className="w-full h-full object-cover"
                         />

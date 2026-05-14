@@ -8,6 +8,7 @@ import {
     AlignLeft, AlignCenter, AlignRight, AlignJustify,
     Link2, Unlink
 } from 'lucide-react';
+import { getImageUrl } from '../../utils/imageUrl';
 import { cn } from '../../utils/cn';
 import { api } from '../../api/axios';
 import { ArticleLinkModal } from './ArticleLinkModal';
@@ -54,7 +55,7 @@ export const EditorToolbar = ({ editor }: EditorToolbarProps) => {
             const res = await api.post('/Wiki/upload-image', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
-            const fullUrl = `http://localhost:5122${res.data.url}`;
+            const fullUrl = getImageUrl(res.data.url)!;
             editor.chain().focus().setImage({ src: fullUrl }).run();
         } catch (error) {
             alert(t('editor.image_upload_error'));

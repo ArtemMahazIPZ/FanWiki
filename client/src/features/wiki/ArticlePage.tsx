@@ -5,6 +5,7 @@ import type { Article } from '../../types/article';
 import { useAuth } from '../../context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { CommentsSection } from './CommentsSection';
+import { getImageUrl } from '../../utils/imageUrl';
 
 interface ArticleMetadata {
     status?: string;
@@ -236,7 +237,7 @@ export const ArticlePage = () => {
                         <div className="p-3 bg-slate-950">
                             {article.imageUrl ? (
                                 <img
-                                    src={`http://localhost:5122${article.imageUrl}`}
+                                    src={getImageUrl(article.imageUrl)}
                                     alt={article.title}
                                     className="w-full rounded-lg border border-slate-800 object-cover aspect-[3/4] shadow-inner"
                                 />
