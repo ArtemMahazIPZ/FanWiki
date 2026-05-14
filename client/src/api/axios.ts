@@ -2,7 +2,7 @@ import axios from 'axios';
 import i18n from '../i18n';
 
 export const api = axios.create({
-    baseURL: 'https://fanwiki-8bx1.onrender.com/api'
+    baseURL: import.meta.env.VITE_API_URL
 });
 
 api.interceptors.request.use((config) => {
