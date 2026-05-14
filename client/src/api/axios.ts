@@ -2,7 +2,7 @@ import axios from 'axios';
 import i18n from '../i18n';
 
 export const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL
+    baseURL: `${import.meta.env.VITE_API_URL}/api`
 });
 
 api.interceptors.request.use((config) => {
