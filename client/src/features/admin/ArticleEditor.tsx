@@ -12,6 +12,7 @@ import type { Article } from '../../types/article';
 import { EditorToolbar } from './EditorToolbar';
 import { FontSize } from '../../extensions/FontSize';
 import { CustomImage } from '../../extensions/CustomImage';
+import { getImageUrl } from '../../utils/imageUrl';
 
 interface ArticleMetadata {
     status?: string;
@@ -438,7 +439,7 @@ export const ArticleEditor = () => {
                             {file ? (
                                 <div className="w-20 h-20 bg-slate-800 rounded flex items-center justify-center text-slate-500 text-xs">{t('editor.new_file')}</div>
                             ) : existingImage && (
-                                <img src={`http://localhost:5122${existingImage}`} alt="Current" className="w-20 h-20 rounded object-cover border border-slate-700"/>
+                                <img src={getImageUrl(existingImage)} alt="Current" className="w-20 h-20 rounded object-cover border border-slate-700"/>
                             )}
                             <div>
                                 <p className="font-bold text-slate-200">{t('editor.selected')}</p>

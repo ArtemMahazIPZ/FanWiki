@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useReports } from '../context/ReportContext';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { useTranslation } from 'react-i18next';
+import { getImageUrl } from '../utils/imageUrl';
 
 export const Header = () => {
     const { user, logout } = useAuth();
@@ -68,7 +69,7 @@ export const Header = () => {
                                 title={t('nav.profile')}
                             >
                                 {user.avatarUrl ? (
-                                    <img src={`http://localhost:5122${user.avatarUrl}`} alt="Avatar" className="w-full h-full object-cover" />
+                                    <img src={getImageUrl(user.avatarUrl)} alt="Avatar" className="w-full h-full object-cover" />
                                 ) : (
                                     <span>{user.nickname[0].toUpperCase()}</span>
                                 )}
