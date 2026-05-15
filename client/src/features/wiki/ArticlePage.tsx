@@ -172,11 +172,11 @@ export const ArticlePage = () => {
     };
 
     return (
-        <div className="max-w-7xl mx-auto mt-8 px-4 pb-10 animate-in fade-in">
-            <div className="flex flex-col md:flex-row justify-between items-end mb-8 border-b border-slate-700 pb-6 gap-4">
-                <div>
-                    <h1 className="text-4xl md:text-5xl font-extrabold text-slate-100 tracking-tight leading-tight">{article.title}</h1>
-                    <div className="flex items-center gap-3 mt-3">
+        <div className="max-w-7xl mx-auto mt-8 px-4 pb-10 animate-in fade-in overflow-hidden">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 border-b border-slate-700 pb-6 gap-4">
+                <div className="min-w-0 max-w-full">
+                    <h1 className="text-3xl md:text-5xl font-extrabold text-slate-100 tracking-tight leading-tight break-words">{article.title}</h1>
+                    <div className="flex flex-wrap items-center gap-3 mt-3">
                         <span className="text-emerald-400 text-sm uppercase tracking-widest font-semibold">
                             {t(`categories.${article.category}`)}
                         </span>
@@ -205,16 +205,16 @@ export const ArticlePage = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-10">
-                <div className="lg:col-span-3 order-2 lg:order-1">
+                <div className="lg:col-span-3 order-2 lg:order-1 min-w-0">
                     {article.quote && (
-                        <div className="bg-slate-900/50 p-8 rounded-xl border-l-4 border-emerald-500 mb-10 italic text-slate-300 shadow-md relative overflow-hidden">
+                        <div className="bg-slate-900/50 p-4 md:p-8 rounded-xl border-l-4 border-emerald-500 mb-10 italic text-slate-300 shadow-md relative overflow-hidden">
                             <span className="absolute top-2 left-4 text-6xl text-emerald-500/10 font-serif leading-none">"</span>
-                            <p className="relative z-10 text-lg font-serif">{article.quote}</p>
+                            <p className="relative z-10 text-lg font-serif break-words">{article.quote}</p>
                         </div>
                     )}
 
                     <div
-                        className="prose prose-invert prose-lg max-w-none text-slate-300 leading-relaxed [&>h2]:text-emerald-400 [&>h2]:mt-10 [&>h2]:border-b [&>h2]:border-slate-800 [&>h2]:pb-2 [&>img]:rounded-xl [&>img]:shadow-2xl"
+                        className="prose prose-invert prose-lg max-w-none text-slate-300 leading-relaxed break-words overflow-hidden [&>h2]:text-emerald-400 [&>h2]:mt-10 [&>h2]:border-b [&>h2]:border-slate-800 [&>h2]:pb-2 [&>img]:rounded-xl [&>img]:shadow-2xl [&>img]:max-w-full [&>img]:h-auto"
                         dangerouslySetInnerHTML={{ __html: article.content }}
                     />
 
@@ -231,7 +231,7 @@ export const ArticlePage = () => {
 
                 <div className="lg:col-span-1 order-1 lg:order-2">
                     <div className="bg-slate-900 border border-slate-700 rounded-xl overflow-hidden shadow-2xl sticky top-24">
-                        <div className="bg-gradient-to-r from-emerald-900/80 to-slate-900 p-4 text-center font-bold text-emerald-100 border-b border-slate-700 tracking-wide uppercase text-sm">
+                        <div className="bg-gradient-to-r from-emerald-900/80 to-slate-900 p-4 text-center font-bold text-emerald-100 border-b border-slate-700 tracking-wide uppercase text-sm break-words">
                             {article.title}
                         </div>
                         <div className="p-3 bg-slate-950">
