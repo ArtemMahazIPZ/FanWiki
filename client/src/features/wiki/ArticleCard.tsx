@@ -10,15 +10,10 @@ interface ArticleCardProps {
 export const ArticleCard = ({ article }: ArticleCardProps) => {
     const { t, i18n } = useTranslation();
 
-    const stripHtml = (html: string) => {
-        const doc = new DOMParser().parseFromString(html, 'text/html');
-        return doc.body.textContent || "";
-    };
-
     const formattedDate = new Date(article.createdAt).toLocaleDateString(i18n.language === 'uk' ? 'uk-UA' : 'en-US');
 
     return (
-        <div className="bg-slate-900 rounded-xl overflow-hidden border border-slate-800 hover:border-emerald-500/50 transition group flex flex-col h-full shadow-lg">
+        <div className="bg-slate-900 rounded-xl overflow-hidden border border-slate-800 hover:border-emerald-500/50 transition group flex flex-col h-full shadow-lg w-full max-w-full">
             <div className="h-48 overflow-hidden relative bg-slate-950">
                 {article.imageUrl ? (
                     <img
@@ -43,16 +38,12 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
                 </div>
             </div>
 
-            <div className="p-5 flex flex-col grow">
+            <div className="p-5 flex flex-col grow overflow-hidden">
                 <Link to={`/wiki/${article.slug}`} className="block">
-                    <h3 className="text-xl font-bold text-slate-100 mb-2 group-hover:text-emerald-400 transition line-clamp-1">
+                    <h3 className="text-xl font-bold text-slate-100 mb-2 group-hover:text-emerald-400 transition line-clamp-1 break-words">
                         {article.title}
                     </h3>
                 </Link>
-
-                <p className="text-slate-400 text-sm mb-4 line-clamp-3 grow leading-relaxed">
-                    {stripHtml(article.content)}
-                </p>
 
                 <div className="pt-4 mt-auto border-t border-slate-800 flex justify-between items-center text-xs text-slate-500 font-medium">
                     <span>{formattedDate}</span>
