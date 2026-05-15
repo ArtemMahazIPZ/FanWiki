@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { api } from '../../api/axios';
 import type { Article } from '../../types/article';
 import { Search, X } from 'lucide-react';
-import { getImageUrl } from '../../utils/imageUrl';
+
 
 interface ArticleLinkModalProps {
     onSelect: (slug: string, title: string) => void;
@@ -67,7 +67,7 @@ export const ArticleLinkModal = ({ onSelect, onClose }: ArticleLinkModalProps) =
                             >
                                 {article.imageUrl ? (
                                     <img
-                                        src={getImageUrl(article.imageUrl)}
+                                        src={`${import.meta.env.VITE_API_URL}${article.imageUrl}`}
                                         alt=""
                                         className="w-10 h-10 rounded object-cover border border-slate-700 flex-shrink-0"
                                     />

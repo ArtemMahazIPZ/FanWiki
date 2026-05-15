@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import type {Article} from '../../types/article';
 import { useTranslation } from 'react-i18next';
-import { getImageUrl } from '../../utils/imageUrl';
+
 
 interface ArticleCardProps {
     article: Article;
@@ -22,7 +22,7 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
             <div className="h-48 overflow-hidden relative bg-slate-950">
                 {article.imageUrl ? (
                     <img
-                        src={getImageUrl(article.imageUrl)}
+                        src={`${import.meta.env.VITE_API_URL}${article.imageUrl}`}
                         alt={article.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
                     />
