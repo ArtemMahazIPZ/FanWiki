@@ -77,6 +77,10 @@ export const EditorToolbar = ({ editor }: EditorToolbarProps) => {
         editor.chain().focus().updateAttributes('image', { width }).run();
     };
 
+    const setCaption = (caption: string) => {
+        editor.chain().focus().updateAttributes('image', { caption }).run();
+    };
+
     const handleArticleLink = (slug: string) => {
         const url = `/wiki/${slug}`;
         editor.chain().focus().setLink({ href: url }).run();
@@ -143,10 +147,18 @@ export const EditorToolbar = ({ editor }: EditorToolbarProps) => {
                 </MenuButton>
 
                 {editor.isActive('image') && (
-                    <div className="flex bg-slate-800 rounded ml-2 p-1 animate-in fade-in zoom-in duration-200 border border-slate-700">
+                    <div className="flex items-center bg-slate-800 rounded ml-2 p-1 animate-in fade-in zoom-in duration-200 border border-slate-700 gap-2">
                         <button onClick={() => setWidth('100%')} className="p-1 hover:text-emerald-400 text-slate-400 transition" title="100% Width"><Monitor size={16} /></button>
                         <button onClick={() => setWidth('50%')} className="p-1 hover:text-emerald-400 text-slate-400 transition" title="50% Width"><Monitor size={12} /></button>
                         <button onClick={() => setWidth('25%')} className="p-1 hover:text-emerald-400 text-slate-400 transition" title="25% Width"><Smartphone size={12} /></button>
+                        <input
+                            type="text"
+                            placeholder={t('editor.caption_placeholder', 'Caption...')}
+                            className="ml-1 w-40 bg-slate-950 border border-slate-700 rounded px-2 py-0.5 text-xs text-white focus:border-emerald-500 outline-none"
+                            defaultValue={editor.getAttributes('image').caption || ''}
+                            onBlur={(e) => setCaption(e.target.value)}
+                            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); setCaption((e.target as HTMLInputElement).value); } }}
+                        />
                     </div>
                 )}
             </div>

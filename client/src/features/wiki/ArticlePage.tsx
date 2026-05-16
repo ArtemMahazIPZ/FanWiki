@@ -214,7 +214,7 @@ export const ArticlePage = () => {
                     )}
 
                     <div
-                        className="prose prose-invert prose-lg max-w-none text-slate-300 leading-relaxed break-words overflow-hidden [&>h2]:text-emerald-400 [&>h2]:mt-10 [&>h2]:border-b [&>h2]:border-slate-800 [&>h2]:pb-2 [&>img]:rounded-xl [&>img]:shadow-2xl [&>img]:max-w-full [&>img]:h-auto"
+                        className="prose prose-invert prose-lg max-w-none text-slate-300 leading-relaxed break-words overflow-hidden [&>h2]:text-emerald-400 [&>h2]:mt-10 [&>h2]:border-b [&>h2]:border-slate-800 [&>h2]:pb-2 [&>img]:rounded-xl [&>img]:shadow-2xl [&>img]:max-w-full [&>img]:h-auto [&>figure]:my-6 [&>figure]:mx-auto [&>figure_img]:rounded-xl [&>figure_img]:shadow-2xl [&_figure_img]:rounded-xl [&_figure_img]:shadow-2xl [&_figcaption]:text-sm [&_figcaption]:text-slate-400 [&_figcaption]:text-center [&_figcaption]:mt-2 [&_figcaption]:italic"
                         dangerouslySetInnerHTML={{ __html: article.content }}
                     />
 
