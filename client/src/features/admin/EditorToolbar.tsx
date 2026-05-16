@@ -55,8 +55,7 @@ export const EditorToolbar = ({ editor }: EditorToolbarProps) => {
             const res = await api.post('/Wiki/upload-image', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
-            const fullUrl = `${import.meta.env.VITE_API_URL}${res.data.url}`;
-            editor.chain().focus().setImage({ src: fullUrl }).run();
+            editor.chain().focus().setImage({ src: res.data.url }).run();
         } catch (error) {
             alert(t('editor.image_upload_error'));
         } finally {

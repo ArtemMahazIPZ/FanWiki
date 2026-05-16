@@ -1,13 +1,13 @@
-﻿using FanWiki.Application.DTOs;
+using FanWiki.Application.DTOs;
 using FanWiki.Application.Services;
-using Microsoft.AspNetCore.Authorization; 
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FanWiki.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class WikiController(IWikiService wikiService, IWebHostEnvironment env) : ControllerBase
+public class WikiController(IWikiService wikiService, IImageService imageService) : ControllerBase
 {
     [HttpGet("{slug}")]
     public async Task<IActionResult> Get(string slug, [FromQuery] string lang = "en", CancellationToken ct = default)
@@ -16,7 +16,7 @@ public class WikiController(IWikiService wikiService, IWebHostEnvironment env) :
         if (article is null) return NotFound();
         return Ok(article);
     }
-    
+
     [HttpGet]
     public async Task<IActionResult> GetAll(
         [FromQuery] string? category,
@@ -39,13 +39,13 @@ public class WikiController(IWikiService wikiService, IWebHostEnvironment env) :
     }
 
     [HttpPost]
-    [Authorize(Roles = "Admin")] 
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Create([FromForm] CreateArticleDto dto, CancellationToken ct = default)
     {
         try
         {
-            string? imagePath = await SaveImageAsync(dto.Image, ct);
-            var id = await wikiService.CreateArticleAsync(dto, imagePath, ct); 
+            string? imageUrl = await UploadToCloudinaryAsync(dto.Image, "images", ct);
+            var id = await wikiService.CreateArticleAsync(dto, imageUrl, ct);
             return CreatedAtAction(nameof(Get), new { slug = dto.Slug }, new { id });
         }
         catch (Exception ex)
@@ -53,15 +53,15 @@ public class WikiController(IWikiService wikiService, IWebHostEnvironment env) :
             return BadRequest(new { message = ex.Message });
         }
     }
-    
+
     [HttpPut("{id:guid}")]
-    [Authorize(Roles = "Admin")] 
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Update(Guid id, [FromForm] CreateArticleDto dto, CancellationToken ct = default)
     {
-        try 
+        try
         {
-            string? imagePath = await SaveImageAsync(dto.Image, ct);
-            await wikiService.UpdateArticleAsync(id, dto, imagePath, ct);
+            string? imageUrl = await UploadToCloudinaryAsync(dto.Image, "images", ct);
+            await wikiService.UpdateArticleAsync(id, dto, imageUrl, ct);
             return Ok(new { message = "Article updated" });
         }
         catch (Exception ex)
@@ -71,7 +71,7 @@ public class WikiController(IWikiService wikiService, IWebHostEnvironment env) :
     }
 
     [HttpDelete("{id:guid}")]
-    [Authorize(Roles = "Admin")] 
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken ct = default)
     {
         try
@@ -86,40 +86,24 @@ public class WikiController(IWikiService wikiService, IWebHostEnvironment env) :
     }
 
     [HttpPost("upload-image")]
-    [Authorize(Roles = "Admin")] 
-    public async Task<IActionResult> UploadArticleImage(IFormFile file)
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> UploadArticleImage(IFormFile file, CancellationToken ct = default)
     {
         if (file == null || file.Length == 0) return BadRequest("No file");
 
-        var uploadsFolder = Path.Combine(env.WebRootPath, "images", "articles");
-        if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
+        using var stream = file.OpenReadStream();
+        var url = await imageService.UploadImageAsync(stream, file.FileName, "articles", ct);
 
-        var uniqueFileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
-        var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+        if (url == null) return StatusCode(500, "Failed to upload image");
 
-        using (var stream = new FileStream(filePath, FileMode.Create))
-        {
-            await file.CopyToAsync(stream);
-        }
-
-        return Ok(new { url = $"/images/articles/{uniqueFileName}" });
+        return Ok(new { url });
     }
-    
-    private async Task<string?> SaveImageAsync(IFormFile? image, CancellationToken ct)
+
+    private async Task<string?> UploadToCloudinaryAsync(IFormFile? image, string folder, CancellationToken ct)
     {
         if (image == null) return null;
 
-        var uploadsFolder = Path.Combine(env.WebRootPath, "images");
-        if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
-
-        var uniqueFileName = Guid.NewGuid().ToString() + "_" + image.FileName;
-        var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-        using (var fileStream = new FileStream(filePath, FileMode.Create))
-        {
-            await image.CopyToAsync(fileStream, ct);
-        }
-
-        return "/images/" + uniqueFileName;
+        using var stream = image.OpenReadStream();
+        return await imageService.UploadImageAsync(stream, image.FileName, folder, ct);
     }
 }

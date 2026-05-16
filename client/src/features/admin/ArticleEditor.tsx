@@ -439,7 +439,7 @@ export const ArticleEditor = () => {
                             {file ? (
                                 <div className="w-20 h-20 bg-slate-800 rounded flex items-center justify-center text-slate-500 text-xs">{t('editor.new_file')}</div>
                             ) : existingImage && (
-                                <img src={`${import.meta.env.VITE_API_URL}${existingImage}`} alt="Current" className="w-20 h-20 rounded object-cover border border-slate-700"/>
+                                <img src={existingImage} alt="Current" className="w-20 h-20 rounded object-cover border border-slate-700"/>
                             )}
                             <div>
                                 <p className="font-bold text-slate-200">{t('editor.selected')}</p>

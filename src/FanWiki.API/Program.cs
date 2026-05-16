@@ -1,11 +1,12 @@
 using System.Text;
+using FanWiki.API.Services;
 using FanWiki.Application.Services;
-using FanWiki.Domain.Entities; 
+using FanWiki.Domain.Entities;
 using FanWiki.Infrastructure;
-using FanWiki.Infrastructure.Data; 
+using FanWiki.Infrastructure.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore; 
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -50,6 +51,7 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddScoped<IWikiService, WikiService>();
+builder.Services.AddSingleton<IImageService, CloudinaryImageService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

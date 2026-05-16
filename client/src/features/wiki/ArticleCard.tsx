@@ -17,7 +17,7 @@ export const ArticleCard = ({ article }: ArticleCardProps) => {
             <div className="h-48 overflow-hidden relative bg-slate-950">
                 {article.imageUrl ? (
                     <img
-                        src={`${import.meta.env.VITE_API_URL}${article.imageUrl}`}
+                        src={article.imageUrl}
                         alt={article.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
                     />
