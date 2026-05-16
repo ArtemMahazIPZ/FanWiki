@@ -16,3 +16,6 @@ appsettings.Development.json
 .vs/
 .idea/
 *.user
+
+# Claude
+.claude/
