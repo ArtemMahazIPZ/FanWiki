@@ -72,7 +72,7 @@ export const CommentsSection = ({ articleId }: { articleId: string }) => {
     const renderComment = (c: Comment, isReply = false) => (
         <div key={c.id} className={`flex gap-4 mb-6 ${isReply ? 'ml-12 border-l-2 border-slate-800 pl-4' : 'border-b border-slate-800/50 pb-6 last:border-0'}`}>
             <div className="flex-shrink-0">
-                <img src={c.user.avatarUrl ? `${import.meta.env.VITE_API_URL}${c.user.avatarUrl}` : "https://via.placeholder.com/40"}
+                <img src={c.user.avatarUrl || "https://via.placeholder.com/40"}
                      className="w-10 h-10 rounded-full object-cover border-2 border-slate-800 shadow-sm"
                      alt={c.user.nickname}
                 />
@@ -158,7 +158,7 @@ export const CommentsSection = ({ articleId }: { articleId: string }) => {
                 <div className="mb-10 flex gap-4 bg-slate-900/30 p-6 rounded-2xl border border-slate-800/50 shadow-xl backdrop-blur-sm">
                     <div className="flex-shrink-0">
                         <img
-                            src={user.avatarUrl ? `${import.meta.env.VITE_API_URL}${user.avatarUrl}` : "https://via.placeholder.com/40"}
+                            src={user.avatarUrl || "https://via.placeholder.com/40"}
                             className="w-12 h-12 rounded-full object-cover border-2 border-emerald-500/30 shadow-sm"
                             alt={user.nickname}
                         />

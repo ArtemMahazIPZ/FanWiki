@@ -69,7 +69,7 @@ export const Header = () => {
                                 title={t('nav.profile')}
                             >
                                 {user.avatarUrl ? (
-                                    <img src={`${import.meta.env.VITE_API_URL}${user.avatarUrl}`} alt="Avatar" className="w-full h-full object-cover" />
+                                    <img src={user.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                                 ) : (
                                     <span>{user.nickname[0].toUpperCase()}</span>
                                 )}

@@ -1,7 +1,8 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using FanWiki.Application.DTOs;
+using FanWiki.Application.Services;
 using FanWiki.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -13,8 +14,8 @@ namespace FanWiki.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 public class AccountController(
-    UserManager<ApplicationUser> userManager, 
-    IWebHostEnvironment env) : ControllerBase
+    UserManager<ApplicationUser> userManager,
+    IImageService imageService) : ControllerBase
 {
     [HttpGet("profile")]
     [Authorize]
@@ -23,20 +24,20 @@ public class AccountController(
         var user = await userManager.GetUserAsync(User);
         if (user == null) return NotFound("User not found");
 
-        return Ok(new 
+        return Ok(new
         {
             user.Id,
             user.Email,
             user.UserName,
-            Nickname = user.Nickname, 
-            AvatarUrl = user.AvatarUrl, 
+            Nickname = user.Nickname,
+            AvatarUrl = user.AvatarUrl,
             Roles = await userManager.GetRolesAsync(user)
         });
     }
 
     [HttpPost("avatar")]
     [Authorize]
-    public async Task<IActionResult> UploadAvatar(IFormFile file)
+    public async Task<IActionResult> UploadAvatar(IFormFile file, CancellationToken ct = default)
     {
         var user = await userManager.GetUserAsync(User);
         if (user == null) return NotFound("User not found");
@@ -44,22 +45,16 @@ public class AccountController(
         if (file == null || file.Length == 0)
             return BadRequest("No file uploaded");
 
-        var uploadsFolder = Path.Combine(env.WebRootPath, "images", "avatars");
-        if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
+        using var stream = file.OpenReadStream();
+        var url = await imageService.UploadImageAsync(stream, file.FileName, "avatars", ct);
 
-        var fileExtension = Path.GetExtension(file.FileName);
-        var uniqueFileName = $"{user.Id}_{Guid.NewGuid()}{fileExtension}";
-        var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+        if (url == null)
+            return StatusCode(500, "Failed to upload avatar");
 
-        using (var stream = new FileStream(filePath, FileMode.Create))
-        {
-            await file.CopyToAsync(stream);
-        }
+        user.AvatarUrl = url;
 
-        user.AvatarUrl = $"/images/avatars/{uniqueFileName}";
-        
         var result = await userManager.UpdateAsync(user);
-        
+
         if (!result.Succeeded)
             return StatusCode(500, "Failed to update user profile");
 
@@ -77,7 +72,7 @@ public class AccountController(
         if (user == null) return NotFound("User not found");
 
         user.Nickname = dto.Nickname;
-        
+
         var result = await userManager.UpdateAsync(user);
 
         if (!result.Succeeded)
@@ -98,7 +93,7 @@ public class AccountController(
             new("nickname", user.Nickname ?? ""),
             new("avatarUrl", user.AvatarUrl ?? "")
         };
-        
+
         foreach (var role in roles)
         {
             claims.Add(new Claim(ClaimTypes.Role, role));

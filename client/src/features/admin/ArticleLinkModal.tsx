@@ -67,7 +67,7 @@ export const ArticleLinkModal = ({ onSelect, onClose }: ArticleLinkModalProps) =
                             >
                                 {article.imageUrl ? (
                                     <img
-                                        src={`${import.meta.env.VITE_API_URL}${article.imageUrl}`}
+                                        src={article.imageUrl}
                                         alt=""
                                         className="w-10 h-10 rounded object-cover border border-slate-700 flex-shrink-0"
                                     />

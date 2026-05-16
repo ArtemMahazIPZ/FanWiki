@@ -87,7 +87,7 @@ export const UserProfilePage = () => {
                 <div className="flex flex-col items-center gap-4 w-full md:w-auto">
                     <div className="w-40 h-40 rounded-full border-4 border-slate-700 overflow-hidden bg-slate-800 shadow-2xl relative group">
                         <img
-                            src={preview || (user.avatarUrl ? `${import.meta.env.VITE_API_URL}${user.avatarUrl}` : "https://via.placeholder.com/150")}
+                            src={preview || (user.avatarUrl || "https://via.placeholder.com/150")}
                             alt="Avatar"
                             className="w-full h-full object-cover"
                         />
