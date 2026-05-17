@@ -1,5 +1,6 @@
 import Image from '@tiptap/extension-image';
 import { mergeAttributes } from '@tiptap/core';
+import type { DOMOutputSpec } from '@tiptap/pm/model';
 import { ReactNodeViewRenderer } from '@tiptap/react';
 import { ImageResizeNodeView } from './ImageResizeNodeView';
 
@@ -44,22 +45,22 @@ export const CustomImage = Image.extend({
         ];
     },
 
-    renderHTML({ HTMLAttributes }) {
+    renderHTML({ HTMLAttributes }): DOMOutputSpec {
         const { caption, width, ...imgAttrs } = HTMLAttributes;
 
         const imgStyle = `width: ${width}; height: auto; max-width: 100%; display: block; margin: 0 auto;`;
-        const imgNode = ['img', mergeAttributes(imgAttrs, { width, style: imgStyle })];
+        const imgAttrsWithStyle = mergeAttributes(imgAttrs, { width, style: imgStyle });
 
         if (caption) {
             return [
                 'figure',
                 { style: `width: ${width}; max-width: 100%; margin: 1rem auto; text-align: center;` },
-                imgNode,
+                ['img', imgAttrsWithStyle],
                 ['figcaption', { style: 'font-size: 0.85rem; color: #94a3b8; margin-top: 0.5rem; font-style: italic;' }, caption],
-            ];
+            ] as DOMOutputSpec;
         }
 
-        return imgNode;
+        return ['img', imgAttrsWithStyle] as DOMOutputSpec;
     },
 
     addNodeView() {
