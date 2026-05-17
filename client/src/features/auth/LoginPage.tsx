@@ -9,7 +9,7 @@ export const LoginPage = () => {
     const navigate = useNavigate();
     const { login } = useAuth();
     const { t } = useTranslation();
-    const [formData, setFormData] = useState({ username: '', password: '' });
+    const [formData, setFormData] = useState({ usernameOrEmail: '', password: '' });
     const [error, setError] = useState('');
     const [showPassword, setShowPassword] = useState(false);
 
@@ -46,13 +46,13 @@ export const LoginPage = () => {
                 <div className="space-y-4">
                     <div>
                         <label className="block text-slate-400 text-xs font-bold mb-2 uppercase">
-                            {t('auth.username_label')}
+                            {t('auth.username_or_email_label')}
                         </label>
                         <input
                             className="w-full bg-slate-950 p-3 rounded-lg text-white border border-slate-700 focus:border-emerald-500 outline-none transition placeholder-slate-600"
-                            placeholder={t('auth.username_placeholder')}
-                            value={formData.username}
-                            onChange={e => setFormData({ ...formData, username: e.target.value })}
+                            placeholder={t('auth.username_or_email_placeholder')}
+                            value={formData.usernameOrEmail}
+                            onChange={e => setFormData({ ...formData, usernameOrEmail: e.target.value })}
                             required
                         />
                     </div>
