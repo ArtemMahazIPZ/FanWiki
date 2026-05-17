@@ -18,9 +18,10 @@ function processArticleHtml(html: string): string {
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
 
-    // Only process images that are NOT already wrapped in a <figure>
+    // Convert <img data-caption="…"> → <figure><img><figcaption>
+    // Images are NOT already wrapped in a <figure> (new renderHTML stores data-caption on img).
     doc.querySelectorAll<HTMLImageElement>('img[data-caption]').forEach((img) => {
-        if (img.closest('figure')) return; // already handled by renderHTML
+        if (img.closest('figure')) return;
 
         const caption = img.getAttribute('data-caption') || '';
         if (!caption.trim()) {
@@ -30,10 +31,9 @@ function processArticleHtml(html: string): string {
 
         const figure = doc.createElement('figure');
         figure.style.cssText =
-            'text-align: center; margin: 1rem auto; max-width: 100%;' +
+            'text-align: center; margin: 1.5rem auto; max-width: 100%;' +
             ` width: ${img.getAttribute('width') || img.style.width || '100%'};`;
 
-        // Move the img into the figure, stripped of data-caption
         img.removeAttribute('data-caption');
         figure.appendChild(img.cloneNode(true));
 
@@ -44,7 +44,30 @@ function processArticleHtml(html: string): string {
         figcaption.textContent = caption;
         figure.appendChild(figcaption);
 
-        img.replaceWith(figure);
+        // If the img sits inside a <p>, place the figure after the <p> so that
+        // a block-level <figure> is never nested inside an inline <p> (invalid HTML
+        // that browsers repair unpredictably, which was causing the display artefact).
+        const parent = img.parentElement;
+        if (parent?.tagName === 'P') {
+            parent.insertAdjacentElement('afterend', figure);
+            img.remove();
+            if (!parent.textContent?.trim() && parent.children.length === 0) {
+                parent.remove();
+            }
+        } else {
+            img.replaceWith(figure);
+        }
+    });
+
+    // Also hoist any <figure> elements that are still inside <p> tags
+    // (content saved before this fix had renderHTML wrap images in <figure>
+    //  which ended up nested in TipTap's paragraph — this fixes those rows).
+    doc.querySelectorAll<HTMLElement>('p > figure').forEach((figure) => {
+        const p = figure.parentElement!;
+        p.insertAdjacentElement('afterend', figure);
+        if (!p.textContent?.trim() && p.children.length === 0) {
+            p.remove();
+        }
     });
 
     return doc.body.innerHTML;
