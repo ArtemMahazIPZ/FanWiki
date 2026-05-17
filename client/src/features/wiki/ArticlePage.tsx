@@ -6,6 +6,50 @@ import { useAuth } from '../../context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { CommentsSection } from './CommentsSection';
 
+/**
+ * Promotes bare <img data-caption="…"> tags to <figure><img><figcaption> structure.
+ * Leaves images that are already inside <figure> untouched.
+ * This handles both newly-saved content (where CustomImage.renderHTML now outputs
+ * figure/figcaption correctly) and any older rows that have data-caption on the img.
+ */
+function processArticleHtml(html: string): string {
+    if (!html) return html;
+
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+
+    // Only process images that are NOT already wrapped in a <figure>
+    doc.querySelectorAll<HTMLImageElement>('img[data-caption]').forEach((img) => {
+        if (img.closest('figure')) return; // already handled by renderHTML
+
+        const caption = img.getAttribute('data-caption') || '';
+        if (!caption.trim()) {
+            img.removeAttribute('data-caption');
+            return;
+        }
+
+        const figure = doc.createElement('figure');
+        figure.style.cssText =
+            'text-align: center; margin: 1rem auto; max-width: 100%;' +
+            ` width: ${img.getAttribute('width') || img.style.width || '100%'};`;
+
+        // Move the img into the figure, stripped of data-caption
+        img.removeAttribute('data-caption');
+        figure.appendChild(img.cloneNode(true));
+
+        const figcaption = doc.createElement('figcaption');
+        figcaption.style.cssText =
+            'font-style: italic; font-size: 0.875rem; color: #94a3b8;' +
+            ' margin-top: 0.5rem; text-align: center;';
+        figcaption.textContent = caption;
+        figure.appendChild(figcaption);
+
+        img.replaceWith(figure);
+    });
+
+    return doc.body.innerHTML;
+}
+
 
 interface ArticleMetadata {
     status?: string;
@@ -215,7 +259,7 @@ export const ArticlePage = () => {
 
                     <div
                         className="prose prose-invert prose-lg max-w-none text-slate-300 leading-relaxed break-words overflow-hidden [&>h2]:text-emerald-400 [&>h2]:mt-10 [&>h2]:border-b [&>h2]:border-slate-800 [&>h2]:pb-2 [&>img]:rounded-xl [&>img]:shadow-2xl [&>img]:max-w-full [&>img]:h-auto [&>figure]:my-6 [&>figure]:mx-auto [&>figure_img]:rounded-xl [&>figure_img]:shadow-2xl [&_figure_img]:rounded-xl [&_figure_img]:shadow-2xl [&_figcaption]:text-sm [&_figcaption]:text-slate-400 [&_figcaption]:text-center [&_figcaption]:mt-2 [&_figcaption]:italic"
-                        dangerouslySetInnerHTML={{ __html: article.content }}
+                        dangerouslySetInnerHTML={{ __html: processArticleHtml(article.content) }}
                     />
 
                     <div className="mt-12 pt-6 border-t border-slate-800/50 flex justify-end">
