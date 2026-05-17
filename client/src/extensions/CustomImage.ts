@@ -1,5 +1,8 @@
 import Image from '@tiptap/extension-image';
 import { mergeAttributes } from '@tiptap/core';
+import type { DOMOutputSpec } from '@tiptap/pm/model';
+import { ReactNodeViewRenderer } from '@tiptap/react';
+import { ImageResizeNodeView } from './ImageResizeNodeView';
 
 export const CustomImage = Image.extend({
     addAttributes() {
@@ -9,22 +12,20 @@ export const CustomImage = Image.extend({
                 default: '100%',
                 parseHTML: (element) => {
                     const figure = element.closest('figure');
-                    if (figure) {
-                        return element.getAttribute('width') || element.style.width || '100%';
-                    }
-                    return element.getAttribute('width') || element.style.width || '100%';
+                    const img = figure ? figure.querySelector('img') ?? element : element;
+                    return img.getAttribute('width') || img.style.width || '100%';
                 },
+                renderHTML: (attributes) => ({
+                    width: attributes.width,
+                }),
             },
             caption: {
                 default: '',
                 parseHTML: (element) => {
                     const figure = element.closest('figure');
-                    if (figure) {
-                        const figcaption = figure.querySelector('figcaption');
-                        return figcaption?.textContent || '';
-                    }
-                    return '';
+                    return figure?.querySelector('figcaption')?.textContent || '';
                 },
+                renderHTML: () => ({}), // handled manually in renderHTML below
             },
         };
     },
@@ -33,39 +34,36 @@ export const CustomImage = Image.extend({
         return [
             {
                 tag: 'figure',
-                contentElement: 'img',
                 getAttrs: (node) => {
-                    const element = node as HTMLElement;
-                    const img = element.querySelector('img');
-                    if (!img) return false;
-                    return {};
+                    const el = node as HTMLElement;
+                    return el.querySelector('img') ? {} : false;
                 },
+                // Tiptap will recurse into children; our parseHTML on attrs covers the img
+                contentElement: 'img',
             },
-            {
-                tag: 'img[src]',
-            },
+            { tag: 'img[src]' },
         ];
     },
 
-    renderHTML({ HTMLAttributes }) {
+    renderHTML({ HTMLAttributes }): DOMOutputSpec {
         const { caption, width, ...imgAttrs } = HTMLAttributes;
-        const imgAttributes = mergeAttributes(imgAttrs, {
-            width,
-            style: `width: ${width}; height: auto; max-width: 100%; display: block; margin: 0 auto;`,
-        });
+
+        const imgStyle = `width: ${width}; height: auto; max-width: 100%; display: block; margin: 0 auto;`;
+        const imgAttrsWithStyle = mergeAttributes(imgAttrs, { width, style: imgStyle });
 
         if (caption) {
             return [
                 'figure',
                 { style: `width: ${width}; max-width: 100%; margin: 1rem auto; text-align: center;` },
-                ['img', imgAttributes],
+                ['img', imgAttrsWithStyle],
                 ['figcaption', { style: 'font-size: 0.85rem; color: #94a3b8; margin-top: 0.5rem; font-style: italic;' }, caption],
-            ];
+            ] as DOMOutputSpec;
         }
 
-        return ['img', mergeAttributes(imgAttrs, {
-            width,
-            style: `width: ${width}; height: auto; max-width: 100%; display: inline-block;`,
-        })];
+        return ['img', imgAttrsWithStyle] as DOMOutputSpec;
+    },
+
+    addNodeView() {
+        return ReactNodeViewRenderer(ImageResizeNodeView);
     },
 });

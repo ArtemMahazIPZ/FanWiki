@@ -154,7 +154,10 @@ const resources = {
                 "link_to_article": "Link to Article",
                 "search_articles": "Search articles...",
                 "loading": "Loading...",
-                "no_articles": "No articles found"
+                "no_articles": "No articles found",
+                "upload_image": "Upload Image",
+                "image_width_px": "Width (px or %)",
+                "caption_placeholder": "Caption..."
             },
             "auth": {
                 "login_title": "Sign In",
@@ -356,7 +359,10 @@ const resources = {
                 "link_to_article": "Посилання на статтю",
                 "search_articles": "Пошук статей...",
                 "loading": "Завантаження...",
-                "no_articles": "Статей не знайдено"
+                "no_articles": "Статей не знайдено",
+                "upload_image": "Завантажити зображення",
+                "image_width_px": "Ширина (px або %)",
+                "caption_placeholder": "Підпис..."
             },
             "auth": {
                 "login_title": "Вхід в систему",
