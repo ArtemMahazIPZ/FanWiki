@@ -20,7 +20,7 @@ public static class DependencyInjection
 
         services.AddScoped<IArticleRepository, ArticleRepository>();
         
-        services.AddTransient<IEmailSender, DebugEmailSender>();
+        services.AddTransient<IEmailSender, SmtpEmailSender>();
 
         return services;
     }
