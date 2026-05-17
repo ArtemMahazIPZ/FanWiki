@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../api/axios';
 import { useTranslation } from 'react-i18next';
 
 
 export const UserProfilePage = () => {
-    const { user, login } = useAuth();
+    const { user, login, logout } = useAuth();
     const { t } = useTranslation();
+    const navigate = useNavigate();
 
     const [file, setFile] = useState<File | null>(null);
     const [preview, setPreview] = useState<string | null>(null);
@@ -14,6 +16,10 @@ export const UserProfilePage = () => {
 
     const [nickname, setNickname] = useState('');
     const [profileLoading, setProfileLoading] = useState(false);
+
+    const [showDeleteSection, setShowDeleteSection] = useState(false);
+    const [deletePassword, setDeletePassword] = useState('');
+    const [deleteLoading, setDeleteLoading] = useState(false);
 
     useEffect(() => {
         if (user) {
@@ -51,6 +57,21 @@ export const UserProfilePage = () => {
             alert(t('profile.avatar_error'));
         } finally {
             setAvatarLoading(false);
+        }
+    };
+
+    const handleDeleteAccount = async () => {
+        if (!deletePassword) return;
+        if (!window.confirm(t('profile.delete_confirm_final'))) return;
+        setDeleteLoading(true);
+        try {
+            await api.delete('/Account/me', { data: { password: deletePassword } });
+            logout();
+            navigate('/');
+        } catch {
+            alert(t('profile.delete_error'));
+        } finally {
+            setDeleteLoading(false);
         }
     };
 
@@ -142,6 +163,44 @@ export const UserProfilePage = () => {
                         </button>
                     </div>
                 </div>
+            </div>
+            <div className="mt-8 bg-slate-900 border border-red-900/40 rounded-xl p-6 shadow-lg">
+                <h2 className="text-lg font-bold text-red-400 mb-1">{t('profile.delete_account')}</h2>
+                <p className="text-slate-500 text-sm mb-4">{t('profile.delete_warning')}</p>
+
+                {!showDeleteSection ? (
+                    <button
+                        onClick={() => setShowDeleteSection(true)}
+                        className="px-5 py-2 bg-red-900/30 hover:bg-red-900/50 border border-red-800 text-red-300 rounded-lg text-sm font-bold transition"
+                    >
+                        {t('profile.delete_account')}
+                    </button>
+                ) : (
+                    <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+                        <input
+                            type="password"
+                            placeholder={t('profile.delete_password_placeholder')}
+                            value={deletePassword}
+                            onChange={e => setDeletePassword(e.target.value)}
+                            className="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-red-500 outline-none transition w-full sm:w-64"
+                        />
+                        <div className="flex gap-2">
+                            <button
+                                onClick={handleDeleteAccount}
+                                disabled={deleteLoading || !deletePassword}
+                                className="px-4 py-2 bg-red-700 hover:bg-red-600 disabled:opacity-50 text-white rounded-lg text-sm font-bold transition"
+                            >
+                                {deleteLoading ? '...' : t('profile.delete_confirm_button')}
+                            </button>
+                            <button
+                                onClick={() => { setShowDeleteSection(false); setDeletePassword(''); }}
+                                className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-sm transition"
+                            >
+                                {t('profile.cancel')}
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

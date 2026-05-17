@@ -13,7 +13,12 @@ public class RegisterDto
 
 public class LoginDto
 {
-    [Required] public string Username { get; set; } = string.Empty;
+    [Required] public string UsernameOrEmail { get; set; } = string.Empty;
+    [Required] public string Password { get; set; } = string.Empty;
+}
+
+public class DeleteAccountDto
+{
     [Required] public string Password { get; set; } = string.Empty;
 }
 
