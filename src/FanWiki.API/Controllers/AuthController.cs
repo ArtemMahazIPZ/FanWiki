@@ -98,8 +98,9 @@ public class AuthController(
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginDto dto)
     {
-        var user = await userManager.FindByNameAsync(dto.Username);
-        if (user == null) return Unauthorized("Invalid username");
+        var user = await userManager.FindByNameAsync(dto.UsernameOrEmail)
+                   ?? await userManager.FindByEmailAsync(dto.UsernameOrEmail);
+        if (user == null) return Unauthorized("Invalid username or email");
 
         if (!user.EmailConfirmed)
         {

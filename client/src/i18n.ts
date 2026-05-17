@@ -81,7 +81,14 @@ const resources = {
                 "avatar_error": "Failed to upload avatar",
                 "profile_updated": "Profile updated!",
                 "profile_error": "Failed to update profile",
-                "updating": "Updating..."
+                "updating": "Updating...",
+                "delete_account": "Delete Account",
+                "delete_warning": "This action is permanent and cannot be undone. All your comments will be removed.",
+                "delete_password_placeholder": "Enter your password to confirm",
+                "delete_confirm_button": "Delete My Account",
+                "delete_confirm_final": "Are you sure you want to permanently delete your account? This cannot be undone.",
+                "delete_error": "Failed to delete account. Check your password and try again.",
+                "cancel": "Cancel"
             },
             "comments": {
                 "title": "Comments",
@@ -163,6 +170,8 @@ const resources = {
                 "login_title": "Sign In",
                 "username_label": "Username",
                 "username_placeholder": "Your username",
+                "username_or_email_label": "Username or Email",
+                "username_or_email_placeholder": "Your username or email",
                 "password_label": "Password",
                 "login_button": "Sign In",
                 "no_account": "Don't have an account?",
@@ -286,7 +295,14 @@ const resources = {
                 "avatar_error": "Помилка завантаження аватару",
                 "profile_updated": "Профіль оновлено!",
                 "profile_error": "Помилка оновлення профілю",
-                "updating": "Оновлення..."
+                "updating": "Оновлення...",
+                "delete_account": "Видалити акаунт",
+                "delete_warning": "Цю дію неможливо скасувати. Всі ваші коментарі будуть видалені.",
+                "delete_password_placeholder": "Введіть пароль для підтвердження",
+                "delete_confirm_button": "Видалити мій акаунт",
+                "delete_confirm_final": "Ви впевнені, що хочете назавжди видалити свій акаунт? Це неможливо скасувати.",
+                "delete_error": "Не вдалося видалити акаунт. Перевірте пароль і спробуйте ще раз.",
+                "cancel": "Скасувати"
             },
             "comments": {
                 "title": "Коментарі",
@@ -368,6 +384,8 @@ const resources = {
                 "login_title": "Вхід в систему",
                 "username_label": "Логін",
                 "username_placeholder": "Ваш username",
+                "username_or_email_label": "Логін або Email",
+                "username_or_email_placeholder": "Ваш username або email",
                 "password_label": "Пароль",
                 "login_button": "Увійти",
                 "no_account": "Немає акаунту?",
