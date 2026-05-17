@@ -56,27 +56,19 @@ export const CustomImage = Image.extend({
     },
 
     renderHTML({ HTMLAttributes }): DOMOutputSpec {
-        // 'data-caption' is provided by the caption attribute's renderHTML above.
-        // We destructure it out so it does NOT end up on the <img> element itself.
         const { 'data-caption': caption, width, ...imgAttrs } = HTMLAttributes;
 
         const imgStyle = `width: ${width}; height: auto; max-width: 100%; display: block; margin: 0 auto;`;
-        const imgAttrsWithStyle = mergeAttributes(imgAttrs, { width, style: imgStyle });
+        // Store as a plain <img> with data-caption; the article view converts it to
+        // <figure>/<figcaption> via processArticleHtml so the figure is never nested
+        // inside a <p> (which would be invalid HTML and cause rendering artefacts).
+        const imgWithAttrs = mergeAttributes(imgAttrs, {
+            width,
+            style: imgStyle,
+            ...(caption ? { 'data-caption': caption } : {}),
+        });
 
-        if (caption) {
-            return [
-                'figure',
-                { style: `width: ${width}; max-width: 100%; margin: 1rem auto; text-align: center;` },
-                ['img', imgAttrsWithStyle],
-                [
-                    'figcaption',
-                    { style: 'font-size: 0.85rem; color: #94a3b8; margin-top: 0.5rem; font-style: italic; text-align: center;' },
-                    caption,
-                ],
-            ] as DOMOutputSpec;
-        }
-
-        return ['img', imgAttrsWithStyle] as DOMOutputSpec;
+        return ['img', imgWithAttrs] as DOMOutputSpec;
     },
 
     addNodeView() {
