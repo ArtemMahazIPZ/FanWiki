@@ -4,9 +4,11 @@ using System.Text;
 using FanWiki.Application.DTOs;
 using FanWiki.Application.Services;
 using FanWiki.Domain.Entities;
+using FanWiki.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 namespace FanWiki.API.Controllers;
@@ -15,7 +17,8 @@ namespace FanWiki.API.Controllers;
 [Route("api/[controller]")]
 public class AccountController(
     UserManager<ApplicationUser> userManager,
-    IImageService imageService) : ControllerBase
+    IImageService imageService,
+    AppDbContext db) : ControllerBase
 {
     [HttpGet("profile")]
     [Authorize]
@@ -82,6 +85,58 @@ public class AccountController(
         var newToken = GenerateJwtToken(user, roles);
 
         return Ok(new { message = "Profile updated", nickname = user.Nickname, token = newToken });
+    }
+
+    [HttpDelete("me")]
+    [Authorize]
+    public async Task<IActionResult> DeleteAccount([FromBody] DeleteAccountDto dto)
+    {
+        var user = await userManager.GetUserAsync(User);
+        if (user == null) return NotFound("User not found");
+
+        if (!await userManager.CheckPasswordAsync(user, dto.Password))
+            return BadRequest("Incorrect password");
+
+        // Remove reactions the user gave to other comments
+        var userReactions = await db.CommentReactions
+            .Where(r => r.UserId == user.Id)
+            .ToListAsync();
+        db.CommentReactions.RemoveRange(userReactions);
+        await db.SaveChangesAsync();
+
+        // Collect IDs of the user's own comments
+        var userCommentIds = await db.Comments
+            .Where(c => c.UserId == user.Id)
+            .Select(c => c.Id)
+            .ToListAsync();
+
+        // Remove reactions on the user's comments
+        var onUserComments = await db.CommentReactions
+            .Where(r => userCommentIds.Contains(r.CommentId))
+            .ToListAsync();
+        db.CommentReactions.RemoveRange(onUserComments);
+        await db.SaveChangesAsync();
+
+        // Detach replies by other users so they become top-level
+        var orphanedReplies = await db.Comments
+            .Where(c => c.ParentId.HasValue && userCommentIds.Contains(c.ParentId.Value))
+            .ToListAsync();
+        foreach (var reply in orphanedReplies) reply.ParentId = null;
+        await db.SaveChangesAsync();
+
+        // Delete the user's own comments
+        var userComments = await db.Comments
+            .Where(c => c.UserId == user.Id)
+            .ToListAsync();
+        db.Comments.RemoveRange(userComments);
+        await db.SaveChangesAsync();
+
+        // Finally delete the account
+        var result = await userManager.DeleteAsync(user);
+        if (!result.Succeeded)
+            return StatusCode(500, result.Errors);
+
+        return Ok(new { message = "Account deleted successfully" });
     }
 
     private string GenerateJwtToken(ApplicationUser user, IList<string> roles)

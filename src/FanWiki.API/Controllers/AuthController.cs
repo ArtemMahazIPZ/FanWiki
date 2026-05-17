@@ -47,8 +47,33 @@ public class AuthController(
       
         await userManager.AddClaimAsync(user, new Claim("EmailVerificationCode", code));
 
-        await emailSender.SendEmailAsync(dto.Email, "Код підтвердження FanWiki", 
-            $"<h1>Вітаємо!</h1><p>Ваш код підтвердження: <b>{code}</b></p>");
+        try
+        {
+            await emailSender.SendEmailAsync(
+                dto.Email,
+                "Код підтвердження FanWiki",
+                $"""
+                <p style="font-size:16px;color:#94a3b8;margin:0 0 24px;">
+                  Дякуємо за реєстрацію на <strong style="color:#34d399;">FanWiki</strong>!
+                </p>
+                <p style="color:#cbd5e1;margin:0 0 16px;">
+                  Ваш одноразовий код підтвердження:
+                </p>
+                <div style="background:#0f172a;border:1px solid #334155;border-radius:8px;
+                            padding:20px;text-align:center;margin:0 0 24px;">
+                  <span style="font-size:36px;font-weight:700;letter-spacing:10px;
+                               color:#34d399;font-family:monospace;">{code}</span>
+                </div>
+                <p style="font-size:13px;color:#64748b;margin:0;">
+                  Код дійсний протягом поточної сесії. Не передавайте його нікому.
+                </p>
+                """
+            );
+        }
+        catch
+        {
+            // SMTP failure is already logged by the email sender.
+        }
 
         return Ok(new { message = "Registration successful. Please check your email for the verification code." });
     }
@@ -80,8 +105,9 @@ public class AuthController(
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginDto dto)
     {
-        var user = await userManager.FindByNameAsync(dto.Username);
-        if (user == null) return Unauthorized("Invalid username");
+        var user = await userManager.FindByNameAsync(dto.UsernameOrEmail)
+                   ?? await userManager.FindByEmailAsync(dto.UsernameOrEmail);
+        if (user == null) return Unauthorized("Invalid username or email");
 
         if (!user.EmailConfirmed)
         {
@@ -112,9 +138,38 @@ public class AuthController(
 
         var token = await userManager.GeneratePasswordResetTokenAsync(user);
 
-        await emailSender.SendEmailAsync(dto.Email, "Reset Password Token", $"Your reset code is: {token}");
+        try
+        {
+            await emailSender.SendEmailAsync(
+                dto.Email,
+                "Password Reset — FanWiki",
+                $"""
+                <p style="font-size:16px;color:#94a3b8;margin:0 0 24px;">
+                  We received a request to reset the password for your
+                  <strong style="color:#34d399;">FanWiki</strong> account.
+                </p>
+                <p style="color:#cbd5e1;margin:0 0 16px;">
+                  Copy the token below and paste it into the reset-password form:
+                </p>
+                <div style="background:#0f172a;border:1px solid #334155;border-radius:8px;
+                            padding:20px;word-break:break-all;margin:0 0 24px;">
+                  <code style="font-size:13px;color:#34d399;font-family:monospace;
+                               line-height:1.6;">{System.Net.WebUtility.HtmlEncode(token)}</code>
+                </div>
+                <p style="font-size:13px;color:#64748b;margin:0;">
+                  If you did not request a password reset, please ignore this email.
+                  Your password will remain unchanged.
+                </p>
+                """
+            );
+        }
+        catch
+        {
+            // SMTP failure is already logged by the email sender.
+            // We still return 200 so the frontend can redirect to the reset form.
+        }
 
-        return Ok(new { message = "Check your email (console) for the reset code." });
+        return Ok(new { message = "If your email exists in our system, a reset link has been sent." });
     }
 
     [HttpPost("reset-password")]
