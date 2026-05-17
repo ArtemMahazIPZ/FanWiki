@@ -4,7 +4,7 @@ import {
     Bold, Italic, Strikethrough,
     Heading1, Heading2, List, ListOrdered, Quote,
     Undo, Redo, Image as ImageIcon,
-    Type, Monitor, Smartphone,
+    Type, Maximize2,
     AlignLeft, AlignCenter, AlignRight, AlignJustify,
     Link2, Unlink
 } from 'lucide-react';
@@ -72,12 +72,16 @@ export const EditorToolbar = ({ editor }: EditorToolbarProps) => {
         }
     };
 
-    const setWidth = (width: string) => {
-        editor.chain().focus().updateAttributes('image', { width }).run();
-    };
-
     const setCaption = (caption: string) => {
         editor.chain().focus().updateAttributes('image', { caption }).run();
+    };
+
+    const applyWidth = (raw: string) => {
+        const trimmed = raw.trim();
+        if (!trimmed) return;
+        // Accept plain numbers as px, pass through anything with a unit
+        const value = /^\d+$/.test(trimmed) ? `${trimmed}px` : trimmed;
+        editor.chain().focus().updateAttributes('image', { width: value }).run();
     };
 
     const handleArticleLink = (slug: string) => {
@@ -141,19 +145,33 @@ export const EditorToolbar = ({ editor }: EditorToolbarProps) => {
             </div>
 
             <div className="flex gap-1 items-center">
-                <MenuButton onClick={handleImageClick} isActive={editor.isActive('image')} title="Upload Image">
+                <MenuButton onClick={handleImageClick} isActive={editor.isActive('image')} title={t('editor.upload_image')}>
                     <ImageIcon size={18} />
                 </MenuButton>
 
                 {editor.isActive('image') && (
                     <div className="flex items-center bg-slate-800 rounded ml-2 p-1 animate-in fade-in zoom-in duration-200 border border-slate-700 gap-2">
-                        <button onClick={() => setWidth('100%')} className="p-1 hover:text-emerald-400 text-slate-400 transition" title="100% Width"><Monitor size={16} /></button>
-                        <button onClick={() => setWidth('50%')} className="p-1 hover:text-emerald-400 text-slate-400 transition" title="50% Width"><Monitor size={12} /></button>
-                        <button onClick={() => setWidth('25%')} className="p-1 hover:text-emerald-400 text-slate-400 transition" title="25% Width"><Smartphone size={12} /></button>
+                        {/* Width input */}
+                        <Maximize2 size={14} className="text-slate-500 ml-1 flex-shrink-0" />
                         <input
+                            key={editor.getAttributes('image').width}
                             type="text"
-                            placeholder={t('editor.caption_placeholder', 'Caption...')}
-                            className="ml-1 w-40 bg-slate-950 border border-slate-700 rounded px-2 py-0.5 text-xs text-white focus:border-emerald-500 outline-none"
+                            title={t('editor.image_width_px')}
+                            placeholder={t('editor.image_width_px')}
+                            className="w-24 bg-slate-950 border border-slate-700 rounded px-2 py-0.5 text-xs text-white focus:border-emerald-500 outline-none"
+                            defaultValue={editor.getAttributes('image').width || '100%'}
+                            onBlur={(e) => applyWidth(e.target.value)}
+                            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); applyWidth((e.target as HTMLInputElement).value); } }}
+                        />
+
+                        <div className="w-px h-4 bg-slate-700 mx-1 flex-shrink-0" />
+
+                        {/* Caption input */}
+                        <input
+                            key={`cap-${editor.getAttributes('image').caption}`}
+                            type="text"
+                            placeholder={t('editor.caption_placeholder')}
+                            className="w-40 bg-slate-950 border border-slate-700 rounded px-2 py-0.5 text-xs text-white focus:border-emerald-500 outline-none"
                             defaultValue={editor.getAttributes('image').caption || ''}
                             onBlur={(e) => setCaption(e.target.value)}
                             onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); setCaption((e.target as HTMLInputElement).value); } }}
