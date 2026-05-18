@@ -10,6 +10,7 @@ dist/
 # ASP.NET Core
 bin/
 obj/
+appsettings.json
 appsettings.Development.json
 
 # Visual Studio / Rider
