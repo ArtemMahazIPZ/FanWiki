@@ -13,7 +13,7 @@ export const ResetPasswordPage = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [formData, setFormData] = useState({
         email: searchParams.get('email') || '',
-        token: '',
+        code: '',
         newPassword: ''
     });
 
@@ -45,11 +45,12 @@ export const ResetPasswordPage = () => {
                     onChange={e => setFormData({...formData, email: e.target.value})}
                 />
 
-                <textarea
+                <input
+                    type="text" inputMode="numeric" pattern="\d{6}" maxLength={6}
                     placeholder={t('auth.token_placeholder')} required
-                    className="w-full bg-slate-950 p-3 rounded-lg text-white border border-slate-700 mb-4 text-xs h-24"
-                    value={formData.token}
-                    onChange={e => setFormData({...formData, token: e.target.value})}
+                    className="w-full bg-slate-950 p-3 rounded-lg text-white border border-slate-700 mb-4 text-center tracking-[0.5em] text-lg font-mono"
+                    value={formData.code}
+                    onChange={e => setFormData({...formData, code: e.target.value.replace(/\D/g, '')})}
                 />
 
                 <div className="flex gap-2 mb-6">
