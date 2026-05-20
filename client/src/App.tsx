@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Header } from './components/Header';
 import { HomePage } from './features/wiki/HomePage';
@@ -15,12 +14,10 @@ import { CommunityRulesPage } from './features/wiki/CommunityRulesPage';
 import { ChatWindow } from './features/chat/ChatWindow';
 import { useAuth } from './context/AuthContext';
 import { useChat } from './context/ChatContext';
-import { MessageCircle } from 'lucide-react';
 
 function App() {
     const { user } = useAuth();
-    const { unreadCount } = useChat();
-    const [showChat, setShowChat] = useState(false);
+    const { showChat, toggleChat } = useChat();
 
     return (
         <div className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-emerald-500/30">
@@ -43,23 +40,7 @@ function App() {
                 <Route path="/admin/reports" element={<ReportsPage />} />
             </Routes>
 
-            {user && (
-                <>
-                    <button
-                        onClick={() => setShowChat(o => !o)}
-                        className="fixed bottom-6 right-6 z-40 bg-emerald-600 hover:bg-emerald-500 p-3.5 rounded-full shadow-lg shadow-emerald-900/40 text-white transition relative"
-                        title="Messages"
-                    >
-                        <MessageCircle size={22} />
-                        {unreadCount > 0 && (
-                            <span className="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full border border-slate-900 animate-pulse">
-                                {unreadCount}
-                            </span>
-                        )}
-                    </button>
-                    {showChat && <ChatWindow onClose={() => setShowChat(false)} />}
-                </>
-            )}
+            {user && showChat && <ChatWindow onClose={toggleChat} />}
         </div>
     );
 }
