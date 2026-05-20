@@ -9,9 +9,16 @@ import { UserProfilePage } from './features/auth/UserProfilePage';
 import { ForgotPasswordPage } from './features/auth/ForgotPasswordPage';
 import { ResetPasswordPage } from './features/auth/ResetPasswordPage';
 import { ReportsPage } from './features/admin/ReportsPage';
-import {AdminDashboard} from "./features/admin/AdminDashboard.tsx";
+import { AdminDashboard } from "./features/admin/AdminDashboard.tsx";
+import { CommunityRulesPage } from './features/wiki/CommunityRulesPage';
+import { ChatWindow } from './features/chat/ChatWindow';
+import { useAuth } from './context/AuthContext';
+import { useChat } from './context/ChatContext';
 
 function App() {
+    const { user } = useAuth();
+    const { showChat, toggleChat } = useChat();
+
     return (
         <div className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-emerald-500/30">
             <Header />
@@ -22,6 +29,7 @@ function App() {
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/profile" element={<UserProfilePage />} />
+                <Route path="/rules" element={<CommunityRulesPage />} />
 
                 <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                 <Route path="/reset-password" element={<ResetPasswordPage />} />
@@ -31,6 +39,8 @@ function App() {
                 <Route path="/admin/edit/:id" element={<ArticleEditor />} />
                 <Route path="/admin/reports" element={<ReportsPage />} />
             </Routes>
+
+            {user && showChat && <ChatWindow onClose={toggleChat} />}
         </div>
     );
 }

@@ -1,8 +1,11 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useReports } from '../context/ReportContext';
+import { useChat } from '../context/ChatContext';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { useTranslation } from 'react-i18next';
+import { NotificationBell } from './NotificationBell';
+import { MessageCircle } from 'lucide-react';
 
 
 export const Header = () => {
@@ -10,6 +13,7 @@ export const Header = () => {
     const navigate = useNavigate();
     const { t } = useTranslation();
     const { pendingReports } = useReports();
+    const { unreadCount, toggleChat } = useChat();
 
     const handleLogout = () => {
         logout();
@@ -30,6 +34,9 @@ export const Header = () => {
                 </Link>
 
                 <div className="flex items-center gap-6">
+                    <Link to="/rules" className="hidden md:block text-sm font-medium text-slate-400 hover:text-emerald-400 transition">
+                        {t('nav.rules')}
+                    </Link>
                     <LanguageSwitcher />
 
                     {user ? (
@@ -62,6 +69,21 @@ export const Header = () => {
                                 <span className="block text-xs text-slate-400 font-medium">{t('nav.hello')},</span>
                                 <span className="block text-sm font-bold text-emerald-400">{user.nickname}</span>
                             </div>
+
+                            <button
+                                onClick={toggleChat}
+                                className="relative p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-full transition"
+                                title="Messages"
+                            >
+                                <MessageCircle size={20} />
+                                {unreadCount > 0 && (
+                                    <span className="absolute top-0 right-0 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full border border-slate-900 animate-pulse">
+                                        {unreadCount}
+                                    </span>
+                                )}
+                            </button>
+
+                            <NotificationBell />
 
                             <Link
                                 to="/profile"

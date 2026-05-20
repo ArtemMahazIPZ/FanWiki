@@ -4,6 +4,7 @@ import { api } from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { extractApiError } from '../../utils/apiError';
 
 export const LoginPage = () => {
     const navigate = useNavigate();
@@ -23,7 +24,7 @@ export const LoginPage = () => {
             navigate('/');
         } catch (err) {
             console.error("Login failed:", err);
-            setError(t('auth.login_error'));
+            setError(extractApiError(err));
         }
     };
 

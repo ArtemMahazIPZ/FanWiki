@@ -4,6 +4,7 @@ import { api } from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 import { useTranslation, Trans } from 'react-i18next';
 import { ThumbsUp, ThumbsDown, CornerDownRight, Trash2, Ban } from 'lucide-react';
+import { extractApiError } from '../../utils/apiError';
 
 
 interface Comment {
@@ -23,6 +24,9 @@ export const CommentsSection = ({ articleId }: { articleId: string }) => {
     const [comments, setComments] = useState<Comment[]>([]);
     const [newComment, setNewComment] = useState('');
     const [replyTo, setReplyTo] = useState<string | null>(null);
+    const [banModal, setBanModal] = useState<string | null>(null); // userId
+    const [banDuration, setBanDuration] = useState('60');
+    const [banReason, setBanReason] = useState('');
 
     const loadComments = () => {
         api.get(`/Comments/article/${articleId}`).then(res => setComments(res.data));
@@ -44,8 +48,7 @@ export const CommentsSection = ({ articleId }: { articleId: string }) => {
 
                 alert(`${t('comments.user_banned')}. ${t('comments.unban')}: ${localDate}`);
             } else {
-                const msg = error.response?.data?.message || error.response?.data || t('comments.error_posting');
-                alert(msg);
+                alert(extractApiError(error));
             }
         }
     };
@@ -56,16 +59,62 @@ export const CommentsSection = ({ articleId }: { articleId: string }) => {
         loadComments();
     };
 
-    const handleDelete = async (id: string) => {
+    const BAN_DURATIONS = [
+        { label: '5 min', value: '5' },
+        { label: '30 min', value: '30' },
+        { label: '1 hour', value: '60' },
+        { label: '5 hours', value: '300' },
+        { label: '24 hours', value: '1440' },
+        { label: t('comments.ban_forever'), value: '2147483647' },
+    ];
+
+    const BAN_REASONS = [
+        'Spam',
+        'Hate speech / harassment',
+        'Repeated rule violations',
+        'Inappropriate content',
+        'Trolling / disruption',
+        'Other',
+    ];
+
+    const DELETION_REASONS = [
+        'Spam',
+        'Hate speech or harassment',
+        'Off-topic',
+        'Misinformation',
+        'Violation of community rules',
+        'Inappropriate content'
+    ];
+
+    const handleDelete = async (id: string, commentUserId: string) => {
         if (!confirm(t('comments.delete_confirm'))) return;
-        await api.delete(`/Comments/${id}`);
+
+        let reason: string | undefined;
+        if (user?.role === 'Admin' && commentUserId !== user.id) {
+            const reasonIndex = window.prompt(
+                `Select deletion reason (enter number):\n${DELETION_REASONS.map((r, i) => `${i + 1}. ${r}`).join('\n')}`
+            );
+            if (reasonIndex) {
+                const idx = parseInt(reasonIndex) - 1;
+                reason = DELETION_REASONS[idx] || reasonIndex;
+            }
+        }
+
+        const url = reason ? `/Comments/${id}?reason=${encodeURIComponent(reason)}` : `/Comments/${id}`;
+        await api.delete(url);
         loadComments();
     };
 
-    const handleBan = async (userId: string) => {
-        const min = prompt(t('comments.ban_prompt'), "60");
-        if (!min) return;
-        await api.post(`/Comments/ban/${userId}?minutes=${min}`);
+    const handleBan = (userId: string) => {
+        setBanDuration('60');
+        setBanReason('');
+        setBanModal(userId);
+    };
+
+    const submitBan = async () => {
+        if (!banModal) return;
+        await api.post(`/Comments/ban/${banModal}?minutes=${banDuration}`);
+        setBanModal(null);
         alert(t('comments.user_banned'));
     };
 
@@ -108,7 +157,7 @@ export const CommentsSection = ({ articleId }: { articleId: string }) => {
                         )}
 
                         {(user?.role === 'Admin' || user?.id === c.user.id) && (
-                            <button onClick={() => handleDelete(c.id)} className="text-slate-500 hover:text-red-500 transition ml-auto">
+                            <button onClick={() => handleDelete(c.id, c.user.id)} className="text-slate-500 hover:text-red-500 transition ml-auto">
                                 <Trash2 size={14} />
                             </button>
                         )}
@@ -193,6 +242,53 @@ export const CommentsSection = ({ articleId }: { articleId: string }) => {
             <div className="space-y-2">
                 {comments.map(c => renderComment(c))}
             </div>
+
+            {banModal && (
+                <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setBanModal(null)}>
+                    <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 w-full max-w-sm shadow-2xl" onClick={e => e.stopPropagation()}>
+                        <h3 className="text-lg font-bold text-white mb-5">{t('comments.ban_modal_title')}</h3>
+
+                        <div className="mb-5">
+                            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">{t('comments.ban_duration')}</p>
+                            <div className="grid grid-cols-3 gap-2">
+                                {BAN_DURATIONS.map(d => (
+                                    <button
+                                        key={d.value}
+                                        onClick={() => setBanDuration(d.value)}
+                                        className={`px-3 py-2 rounded-lg text-sm font-medium transition ${banDuration === d.value ? 'bg-orange-600 text-white shadow-lg shadow-orange-900/30' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`}
+                                    >
+                                        {d.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="mb-6">
+                            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">{t('comments.ban_reason')}</p>
+                            <div className="space-y-1.5">
+                                {BAN_REASONS.map(r => (
+                                    <button
+                                        key={r}
+                                        onClick={() => setBanReason(r)}
+                                        className={`w-full text-left px-3 py-2 rounded-lg text-sm transition ${banReason === r ? 'bg-orange-600/20 border border-orange-500/40 text-orange-300' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`}
+                                    >
+                                        {r}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3">
+                            <button onClick={() => setBanModal(null)} className="flex-1 px-4 py-2 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 transition text-sm font-medium">
+                                {t('comments.ban_cancel')}
+                            </button>
+                            <button onClick={submitBan} className="flex-1 px-4 py-2 rounded-lg bg-orange-600 hover:bg-orange-500 text-white transition text-sm font-bold shadow-lg shadow-orange-900/20">
+                                {t('comments.ban_button')}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
