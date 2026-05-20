@@ -7,7 +7,8 @@ public class Comment : BaseEntity
     public required string Content { get; set; }
     
     
-    public bool IsDeleted { get; set; } = false; 
+    public bool IsDeleted { get; set; } = false;
+    public string? DeletionReason { get; set; }
 
     public required string UserId { get; set; } 
     public ApplicationUser? User { get; set; }

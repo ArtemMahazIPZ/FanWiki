@@ -64,7 +64,7 @@ public class CommentsController(AppDbContext context, UserManager<ApplicationUse
 
     [HttpDelete("{id}")]
     [Authorize]
-    public async Task<IActionResult> Delete(Guid id)
+    public async Task<IActionResult> Delete(Guid id, [FromQuery] string? reason)
     {
         var comment = await context.Comments.FindAsync(id);
         if (comment == null) return NotFound();
@@ -77,8 +77,20 @@ public class CommentsController(AppDbContext context, UserManager<ApplicationUse
 
         comment.IsDeleted = true;
         comment.Content = "[This comment has been deleted]";
-        await context.SaveChangesAsync();
 
+        // If admin provides a reason, store it and create a notification for the comment author
+        if (isAdmin && !string.IsNullOrWhiteSpace(reason) && comment.UserId != userId)
+        {
+            comment.DeletionReason = reason;
+            context.Notifications.Add(new Notification
+            {
+                UserId = comment.UserId,
+                Message = reason,
+                Type = "comment_deleted"
+            });
+        }
+
+        await context.SaveChangesAsync();
         return Ok();
     }
 

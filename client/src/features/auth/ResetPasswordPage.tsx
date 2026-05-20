@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { generatePassword } from '../../utils/passwordGenerator';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
+import { extractApiError } from '../../utils/apiError';
 
 export const ResetPasswordPage = () => {
     const [searchParams] = useSearchParams();
@@ -29,7 +30,7 @@ export const ResetPasswordPage = () => {
             alert(t('auth.password_changed'));
             navigate('/login');
         } catch (error) {
-            alert(t('auth.password_change_error'));
+            alert(extractApiError(error));
         }
     };
 
