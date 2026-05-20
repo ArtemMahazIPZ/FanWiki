@@ -4,6 +4,7 @@ import { generatePassword } from '../../utils/passwordGenerator';
 import { useNavigate } from 'react-router-dom';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
+import { extractApiError } from '../../utils/apiError';
 
 export const RegisterPage = () => {
     const navigate = useNavigate();
@@ -35,7 +36,7 @@ export const RegisterPage = () => {
             await api.post('/Auth/register', formData);
             setStep(2);
         } catch (error: any) {
-            const msg = error.response?.data?.description || t('auth.register_error');
+            const msg = extractApiError(error);
             alert(msg);
         }
     };
@@ -50,7 +51,7 @@ export const RegisterPage = () => {
             alert(t('auth.email_verified'));
             navigate('/login');
         } catch (error) {
-            alert(t('auth.verify_error'));
+            alert(extractApiError(error));
         }
     };
 

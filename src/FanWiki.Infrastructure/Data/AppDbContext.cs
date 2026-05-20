@@ -14,9 +14,12 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
     
     public DbSet<Report> Reports { get; set; }
 
+    public DbSet<PrivateMessage> PrivateMessages { get; set; }
+    public DbSet<Notification> Notifications { get; set; }
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
-        base.OnModelCreating(builder); 
+        base.OnModelCreating(builder);
 
         builder.Entity<Article>()
             .HasIndex(a => a.Slug)
@@ -32,16 +35,34 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbCo
             .HasOne(c => c.User)
             .WithMany()
             .HasForeignKey(c => c.UserId)
-            .OnDelete(DeleteBehavior.Restrict); 
-            
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.Entity<CommentReaction>()
             .HasIndex(r => new { r.CommentId, r.UserId })
             .IsUnique();
-            
+
         builder.Entity<Report>()
             .HasOne(r => r.Sender)
             .WithMany()
             .HasForeignKey(r => r.SenderId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Entity<PrivateMessage>()
+            .HasOne(m => m.Sender)
+            .WithMany()
+            .HasForeignKey(m => m.SenderId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<PrivateMessage>()
+            .HasOne(m => m.Recipient)
+            .WithMany()
+            .HasForeignKey(m => m.RecipientId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.Entity<Notification>()
+            .HasOne(n => n.User)
+            .WithMany()
+            .HasForeignKey(n => n.UserId)
             .OnDelete(DeleteBehavior.Cascade);
     }
 }
