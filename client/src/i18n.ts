@@ -12,7 +12,8 @@ const resources = {
                 "logout": "Logout",
                 "admin": "Admin Panel",
                 "hello": "Hello",
-                "profile": "My Profile"
+                "profile": "My Profile",
+                "rules": "Rules"
             },
             "home": {
                 "title": "Wiki Hub",
@@ -57,7 +58,11 @@ const resources = {
                 "allies": "Allies",
                 "enemies": "Enemies",
                 "alignment": "Alignment",
-                "fire_rate": "RPM"
+                "fire_rate": "RPM",
+                "birth_year": "Birth Year",
+                "birth_place": "Place of Birth",
+                "age": "Age",
+                "also_known_as": "Also Known As"
             },
             "meta_values": {
                 "Alive": "Alive",
@@ -209,6 +214,24 @@ const resources = {
                 "report_success": "Thank you! The administrator has received your report.",
                 "report_error": "Failed to submit report.",
                 "report_button": "Report an issue"
+            },
+            "notifications": {
+                "title": "Notifications",
+                "empty": "No notifications",
+                "mark_all_read": "Mark all as read",
+                "comment_deleted": "Your comment was removed"
+            },
+            "rules": {
+                "title": "Community Rules",
+                "subtitle": "Please read and follow these guidelines to keep FanWiki a welcoming place.",
+                "items": [
+                    { "title": "Be respectful", "body": "Treat all community members with respect. Disagreements are fine; personal attacks are not." },
+                    { "title": "No spam", "body": "Do not post spam, promotional content, or repeated messages." },
+                    { "title": "Stay on topic", "body": "Keep discussions relevant to the wiki content and the associated games or media." },
+                    { "title": "No hate speech", "body": "Hate speech, harassment, and discrimination of any kind are strictly not tolerated." },
+                    { "title": "No misinformation", "body": "Only post accurate, verified information. Cite sources when possible." },
+                    { "title": "Respect intellectual property", "body": "Do not post copyrighted content without permission. Give credit where it is due." }
+                ]
             }
         }
     },
@@ -221,7 +244,8 @@ const resources = {
                 "logout": "Вийти",
                 "admin": "Адмін Панель",
                 "hello": "Привіт",
-                "profile": "Мій Профіль"
+                "profile": "Мій Профіль",
+                "rules": "Правила"
             },
             "home": {
                 "title": "Wiki Hub",
@@ -266,7 +290,11 @@ const resources = {
                 "allies": "Союзники",
                 "enemies": "Вороги",
                 "alignment": "Характер",
-                "fire_rate": "RPM"
+                "fire_rate": "RPM",
+                "birth_year": "Рік народження",
+                "birth_place": "Місце народження",
+                "age": "Вік",
+                "also_known_as": "Також відомий як"
             },
             "meta_values": {
                 "Alive": "Живий",
@@ -423,6 +451,24 @@ const resources = {
                 "report_success": "Дякуємо! Адміністратор отримав ваше повідомлення.",
                 "report_error": "Не вдалося відправити скаргу.",
                 "report_button": "Повідомити про помилку"
+            },
+            "notifications": {
+                "title": "Сповіщення",
+                "empty": "Немає сповіщень",
+                "mark_all_read": "Позначити всі як прочитані",
+                "comment_deleted": "Ваш коментар видалено"
+            },
+            "rules": {
+                "title": "Правила спільноти",
+                "subtitle": "Будь ласка, прочитайте та дотримуйтесь цих правил, щоб FanWiki залишалася приємним місцем.",
+                "items": [
+                    { "title": "Поважайте інших", "body": "Ставтеся до всіх учасників спільноти з повагою. Незгода — це нормально; особисті нападки — ні." },
+                    { "title": "Без спаму", "body": "Не публікуйте спам, рекламний контент або повторювані повідомлення." },
+                    { "title": "Залишайтеся по темі", "body": "Обговорення мають стосуватися контенту вікі та відповідних ігор або медіа." },
+                    { "title": "Без мови ненависті", "body": "Мова ненависті, переслідування та дискримінація будь-якого роду суворо не допускаються." },
+                    { "title": "Без дезінформації", "body": "Публікуйте лише точну, перевірену інформацію. По можливості вказуйте джерела." },
+                    { "title": "Поважайте інтелектуальну власність", "body": "Не публікуйте матеріали, захищені авторським правом, без дозволу. Вказуйте авторів." }
+                ]
             }
         }
     }

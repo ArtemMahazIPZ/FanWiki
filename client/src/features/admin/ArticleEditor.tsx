@@ -6,22 +6,31 @@ import StarterKit from '@tiptap/starter-kit';
 import { TextStyle } from '@tiptap/extension-text-style';
 import TextAlign from '@tiptap/extension-text-align';
 import Link from '@tiptap/extension-link';
+import { ArticleLinkModal } from './ArticleLinkModal';
 
 import { api } from '../../api/axios';
 import type { Article } from '../../types/article';
 import { EditorToolbar } from './EditorToolbar';
 import { FontSize } from '../../extensions/FontSize';
 import { CustomImage } from '../../extensions/CustomImage';
+import { extractApiError } from '../../utils/apiError';
 
+
+type LinkedItem = { name: string; slug?: string };
+type ListField = 'family' | 'allies' | 'enemies' | 'alsoKnownAs';
 
 interface ArticleMetadata {
     status?: string;
     gender?: string;
     voiceActor?: string;
     causeOfDeath?: string;
-    family?: string[];
-    allies?: string[];
-    enemies?: string[];
+    family?: LinkedItem[];
+    allies?: LinkedItem[];
+    enemies?: LinkedItem[];
+    alsoKnownAs?: string[];
+    birthYear?: string | number;
+    birthPlace?: string;
+    age?: string | number;
 
     damage?: string | number;
     year?: string | number;
@@ -31,7 +40,7 @@ interface ArticleMetadata {
     population?: string | number;
     founded?: string | number;
 
-    [key: string]: string | number | string[] | undefined;
+    [key: string]: string | number | string[] | LinkedItem[] | undefined;
 }
 
 export const ArticleEditor = () => {
@@ -56,8 +65,11 @@ export const ArticleEditor = () => {
         gender: 'Unknown',
         family: [],
         allies: [],
-        enemies: []
+        enemies: [],
+        alsoKnownAs: []
     });
+    const [linkingField, setLinkingField] = useState<ListField | null>(null);
+    const [linkingIndex, setLinkingIndex] = useState<number | null>(null);
 
     const [existingImage, setExistingImage] = useState<string | null>(null);
     const [file, setFile] = useState<File | null>(null);
@@ -108,11 +120,17 @@ export const ArticleEditor = () => {
                 if (data.metadata) {
                     try {
                         const parsed = JSON.parse(data.metadata);
+                        // Normalize family/allies/enemies to LinkedItem[]
+                        const normalizeLinked = (arr: any[]): LinkedItem[] =>
+                            (arr || []).map((x: any) =>
+                                typeof x === 'string' ? { name: x } : x
+                            );
                         setMetadata({
                             ...parsed,
-                            family: parsed.family || [],
-                            allies: parsed.allies || [],
-                            enemies: parsed.enemies || []
+                            family: normalizeLinked(parsed.family),
+                            allies: normalizeLinked(parsed.allies),
+                            enemies: normalizeLinked(parsed.enemies),
+                            alsoKnownAs: parsed.alsoKnownAs || []
                         });
                     } catch { setMetadata({}); }
                 }
@@ -132,32 +150,52 @@ export const ArticleEditor = () => {
                 gender: 'Unknown',
                 family: [],
                 allies: [],
-                enemies: []
+                enemies: [],
+                alsoKnownAs: []
             };
         }
         setMetadata(defaults);
     };
 
-    const handleListChange = (field: 'family' | 'allies' | 'enemies', index: number, value: string) => {
-        const list = [...(metadata[field] || [])];
-        list[index] = value;
-        setMetadata({ ...metadata, [field]: list });
+    const handleListChange = (field: ListField, index: number, name: string, slug?: string) => {
+        if (field === 'alsoKnownAs') {
+            const list = [...((metadata.alsoKnownAs as string[]) || [])];
+            list[index] = name;
+            setMetadata({ ...metadata, alsoKnownAs: list });
+        } else {
+            const list = [...((metadata[field] as LinkedItem[]) || [])];
+            list[index] = { name, slug: slug !== undefined ? slug : list[index]?.slug };
+            setMetadata({ ...metadata, [field]: list });
+        }
     };
 
-    const addListItem = (field: 'family' | 'allies' | 'enemies') => {
-        const list = [...(metadata[field] || [])];
-        list.push('');
-        setMetadata({ ...metadata, [field]: list });
+    const addListItem = (field: ListField) => {
+        if (field === 'alsoKnownAs') {
+            const list = [...((metadata.alsoKnownAs as string[]) || [])];
+            list.push('');
+            setMetadata({ ...metadata, alsoKnownAs: list });
+        } else {
+            const list = [...((metadata[field] as LinkedItem[]) || [])];
+            list.push({ name: '' });
+            setMetadata({ ...metadata, [field]: list });
+        }
     };
 
-    const removeListItem = (field: 'family' | 'allies' | 'enemies', index: number) => {
-        const list = [...(metadata[field] || [])];
-        list.splice(index, 1);
-        setMetadata({ ...metadata, [field]: list });
+    const removeListItem = (field: ListField, index: number) => {
+        if (field === 'alsoKnownAs') {
+            const list = [...((metadata.alsoKnownAs as string[]) || [])];
+            list.splice(index, 1);
+            setMetadata({ ...metadata, alsoKnownAs: list });
+        } else {
+            const list = [...((metadata[field] as LinkedItem[]) || [])];
+            list.splice(index, 1);
+            setMetadata({ ...metadata, [field]: list });
+        }
     };
 
-    const renderListInput = (label: string, field: 'family' | 'allies' | 'enemies') => {
-        const items = metadata[field] || [];
+    const renderListInput = (label: string, field: ListField) => {
+        const isLinked = field !== 'alsoKnownAs';
+        const rawItems = metadata[field] || [];
         return (
             <div className="col-span-1 md:col-span-2 bg-slate-950/50 p-3 rounded border border-slate-700">
                 <label className="text-xs text-slate-400 uppercase font-bold flex justify-between items-center mb-2">
@@ -171,24 +209,38 @@ export const ArticleEditor = () => {
                     </button>
                 </label>
                 <div className="space-y-2">
-                    {items.map((item, index) => (
-                        <div key={index} className="flex gap-2">
-                            <input
-                                className="w-full bg-slate-900 p-2 rounded border border-slate-600 text-sm focus:border-emerald-500 outline-none"
-                                value={item}
-                                placeholder={`${label} #${index + 1}`}
-                                onChange={(e) => handleListChange(field, index, e.target.value)}
-                            />
-                            <button
-                                type="button"
-                                onClick={() => removeListItem(field, index)}
-                                className="text-red-400 hover:text-red-300 px-2"
-                            >
-                                ✕
-                            </button>
-                        </div>
-                    ))}
-                    {items.length === 0 && <span className="text-slate-600 text-xs italic">{t('editor.list_empty')}</span>}
+                    {(rawItems as any[]).map((item, index) => {
+                        const nameVal = isLinked ? (item as LinkedItem).name : (item as string);
+                        const slugVal = isLinked ? (item as LinkedItem).slug : undefined;
+                        return (
+                            <div key={index} className="flex gap-2 items-center">
+                                <input
+                                    className="flex-1 bg-slate-900 p-2 rounded border border-slate-600 text-sm focus:border-emerald-500 outline-none"
+                                    value={nameVal}
+                                    placeholder={`${label} #${index + 1}`}
+                                    onChange={(e) => handleListChange(field, index, e.target.value)}
+                                />
+                                {isLinked && (
+                                    <button
+                                        type="button"
+                                        title="Link to article"
+                                        onClick={() => { setLinkingField(field); setLinkingIndex(index); }}
+                                        className={`px-2 py-1 rounded text-xs border transition ${slugVal ? 'bg-emerald-900/40 border-emerald-700 text-emerald-400' : 'border-slate-600 text-slate-500 hover:border-emerald-600 hover:text-emerald-400'}`}
+                                    >
+                                        {slugVal ? '🔗' : '⛓'}
+                                    </button>
+                                )}
+                                <button
+                                    type="button"
+                                    onClick={() => removeListItem(field, index)}
+                                    className="text-red-400 hover:text-red-300 px-2"
+                                >
+                                    ✕
+                                </button>
+                            </div>
+                        );
+                    })}
+                    {rawItems.length === 0 && <span className="text-slate-600 text-xs italic">{t('editor.list_empty')}</span>}
                 </div>
             </div>
         );
@@ -215,9 +267,10 @@ export const ArticleEditor = () => {
         data.append('LanguageCode', formData.languageCode);
 
         const cleanMetadata = { ...metadata };
-        if (cleanMetadata.family) cleanMetadata.family = cleanMetadata.family.filter(x => x.trim() !== '');
-        if (cleanMetadata.allies) cleanMetadata.allies = cleanMetadata.allies.filter(x => x.trim() !== '');
-        if (cleanMetadata.enemies) cleanMetadata.enemies = cleanMetadata.enemies.filter(x => x.trim() !== '');
+        if (cleanMetadata.family) cleanMetadata.family = (cleanMetadata.family as LinkedItem[]).filter(x => x.name.trim() !== '');
+        if (cleanMetadata.allies) cleanMetadata.allies = (cleanMetadata.allies as LinkedItem[]).filter(x => x.name.trim() !== '');
+        if (cleanMetadata.enemies) cleanMetadata.enemies = (cleanMetadata.enemies as LinkedItem[]).filter(x => x.name.trim() !== '');
+        if (cleanMetadata.alsoKnownAs) cleanMetadata.alsoKnownAs = (cleanMetadata.alsoKnownAs as string[]).filter(x => x.trim() !== '');
 
         data.append('Metadata', JSON.stringify(cleanMetadata));
         if (file) data.append('Image', file);
@@ -228,9 +281,7 @@ export const ArticleEditor = () => {
             navigate(`/wiki/${formData.slug}`);
         } catch (error: unknown) {
             console.error(error);
-            const err = error as { response?: { data?: { message?: string } } };
-            const message = err.response?.data?.message || t('editor.unknown_error');
-            alert(`${t('editor.save_error')}: ${message}`);
+            alert(`${t('editor.save_error')}: ${extractApiError(error)}`);
         }
     };
 
@@ -287,9 +338,29 @@ export const ArticleEditor = () => {
                             />
                         </div>
 
+                        <div>
+                            <label className="text-xs text-slate-400 uppercase font-bold">{t('article.birth_year')}</label>
+                            <input type="number" placeholder="e.g. 1985"
+                                className="w-full bg-slate-950 p-2 rounded border border-slate-600 mt-1 outline-none focus:border-emerald-500"
+                                value={metadata.birthYear || ''} onChange={e => setMetadata({...metadata, birthYear: e.target.value})} />
+                        </div>
+                        <div>
+                            <label className="text-xs text-slate-400 uppercase font-bold">{t('article.age')}</label>
+                            <input type="number" placeholder="e.g. 35"
+                                className="w-full bg-slate-950 p-2 rounded border border-slate-600 mt-1 outline-none focus:border-emerald-500"
+                                value={metadata.age || ''} onChange={e => setMetadata({...metadata, age: e.target.value})} />
+                        </div>
+                        <div className="col-span-1 md:col-span-2">
+                            <label className="text-xs text-slate-400 uppercase font-bold">{t('article.birth_place')}</label>
+                            <input placeholder={t('article.birth_place')}
+                                className="w-full bg-slate-950 p-2 rounded border border-slate-600 mt-1 outline-none focus:border-emerald-500"
+                                value={metadata.birthPlace || ''} onChange={e => setMetadata({...metadata, birthPlace: e.target.value})} />
+                        </div>
+
                         {renderListInput(t('article.family'), 'family')}
                         {renderListInput(t('article.allies'), 'allies')}
                         {renderListInput(t('article.enemies'), 'enemies')}
+                        {renderListInput(t('article.also_known_as'), 'alsoKnownAs')}
                     </div>
                 );
 
@@ -460,6 +531,17 @@ export const ArticleEditor = () => {
                     </button>
                 </div>
             </div>
+
+            {linkingField && linkingIndex !== null && (
+                <ArticleLinkModal
+                    onSelect={(slug, title) => {
+                        handleListChange(linkingField, linkingIndex, title, slug);
+                        setLinkingField(null);
+                        setLinkingIndex(null);
+                    }}
+                    onClose={() => { setLinkingField(null); setLinkingIndex(null); }}
+                />
+            )}
         </div>
     );
 };

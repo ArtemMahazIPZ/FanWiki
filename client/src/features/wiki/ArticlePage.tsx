@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { api } from '../../api/axios';
 import type { Article } from '../../types/article';
 import { useAuth } from '../../context/AuthContext';
@@ -74,14 +74,20 @@ function processArticleHtml(html: string): string {
 }
 
 
+interface LinkedItem { name: string; slug?: string; }
+
 interface ArticleMetadata {
     status?: string;
     gender?: string;
     voiceActor?: string;
     causeOfDeath?: string;
-    family?: string[];
-    allies?: string[];
-    enemies?: string[];
+    family?: (string | LinkedItem)[];
+    allies?: (string | LinkedItem)[];
+    enemies?: (string | LinkedItem)[];
+    alsoKnownAs?: string[];
+    birthYear?: string | number;
+    birthPlace?: string;
+    age?: string | number;
 
     damage?: string | number;
     year?: string | number;
@@ -91,7 +97,7 @@ interface ArticleMetadata {
     population?: string | number;
     founded?: string | number;
 
-    [key: string]: string | number | string[] | undefined;
+    [key: string]: string | number | string[] | (string | LinkedItem)[] | undefined;
 }
 
 const InfoRow = ({ label, value, classNameColor = "text-emerald-300" }: { label: string, value?: string | number, classNameColor?: string }) => {
@@ -104,7 +110,7 @@ const InfoRow = ({ label, value, classNameColor = "text-emerald-300" }: { label:
     );
 };
 
-const InfoList = ({ label, items, variant = 'success' }: { label: string, items?: string[], variant?: 'success' | 'danger' }) => {
+const InfoList = ({ label, items, variant = 'success' }: { label: string, items?: (string | LinkedItem)[], variant?: 'success' | 'danger' }) => {
     if (!items || items.length === 0) return null;
 
     const colorStyles = variant === 'danger'
@@ -115,11 +121,17 @@ const InfoList = ({ label, items, variant = 'success' }: { label: string, items?
         <div className="border-b border-slate-800 pb-2 last:border-0 mt-3">
             <span className="block font-bold text-slate-400 text-xs uppercase mb-2">{label}</span>
             <ul className="flex flex-col gap-1 items-end">
-                {items.map((item, idx) => (
-                    <li key={idx} className={`${colorStyles} border text-xs px-2 py-1 rounded w-fit text-right`}>
-                        {item}
-                    </li>
-                ))}
+                {items.map((item, idx) => {
+                    const name = typeof item === 'string' ? item : item.name;
+                    const slug = typeof item === 'string' ? undefined : item.slug;
+                    return (
+                        <li key={idx} className={`${colorStyles} border text-xs px-2 py-1 rounded w-fit text-right`}>
+                            {slug ? (
+                                <Link to={`/wiki/${slug}`} className="hover:underline">{name}</Link>
+                            ) : name}
+                        </li>
+                    );
+                })}
             </ul>
         </div>
     );
@@ -209,6 +221,24 @@ export const ArticlePage = () => {
                                 value={meta.voiceActor}
                                 classNameColor="text-indigo-300"
                             />
+                        )}
+
+                        <InfoRow label={t('article.birth_year')} value={meta.birthYear} />
+                        <InfoRow label={t('article.age')} value={meta.age} />
+                        <InfoRow label={t('article.birth_place')} value={meta.birthPlace} />
+
+                        {meta.alsoKnownAs && meta.alsoKnownAs.length > 0 && (
+                            <div className="border-b border-slate-800 pb-2 last:border-0 mt-3">
+                                <span className="block font-bold text-slate-400 text-xs uppercase mb-2">{t('article.also_known_as')}</span>
+                                <details>
+                                    <summary className="text-emerald-300 text-xs cursor-pointer hover:text-emerald-200">{meta.alsoKnownAs[0]}{meta.alsoKnownAs.length > 1 ? ` +${meta.alsoKnownAs.length - 1}` : ''}</summary>
+                                    <ul className="mt-1 space-y-1">
+                                        {meta.alsoKnownAs.map((aka, i) => (
+                                            <li key={i} className="text-emerald-300 text-xs">{aka}</li>
+                                        ))}
+                                    </ul>
+                                </details>
+                            </div>
                         )}
 
                         <InfoList label={t('article.family')} items={meta.family} variant="success" />
