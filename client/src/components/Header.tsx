@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useReports } from '../context/ReportContext';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { useTranslation } from 'react-i18next';
+import { NotificationBell } from './NotificationBell';
 
 
 export const Header = () => {
@@ -30,6 +31,9 @@ export const Header = () => {
                 </Link>
 
                 <div className="flex items-center gap-6">
+                    <Link to="/rules" className="hidden md:block text-sm font-medium text-slate-400 hover:text-emerald-400 transition">
+                        {t('nav.rules')}
+                    </Link>
                     <LanguageSwitcher />
 
                     {user ? (
@@ -62,6 +66,8 @@ export const Header = () => {
                                 <span className="block text-xs text-slate-400 font-medium">{t('nav.hello')},</span>
                                 <span className="block text-sm font-bold text-emerald-400">{user.nickname}</span>
                             </div>
+
+                            <NotificationBell />
 
                             <Link
                                 to="/profile"

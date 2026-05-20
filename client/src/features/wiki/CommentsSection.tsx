@@ -4,6 +4,7 @@ import { api } from '../../api/axios';
 import { useAuth } from '../../context/AuthContext';
 import { useTranslation, Trans } from 'react-i18next';
 import { ThumbsUp, ThumbsDown, CornerDownRight, Trash2, Ban } from 'lucide-react';
+import { extractApiError } from '../../utils/apiError';
 
 
 interface Comment {
@@ -44,8 +45,7 @@ export const CommentsSection = ({ articleId }: { articleId: string }) => {
 
                 alert(`${t('comments.user_banned')}. ${t('comments.unban')}: ${localDate}`);
             } else {
-                const msg = error.response?.data?.message || error.response?.data || t('comments.error_posting');
-                alert(msg);
+                alert(extractApiError(error));
             }
         }
     };
@@ -56,9 +56,31 @@ export const CommentsSection = ({ articleId }: { articleId: string }) => {
         loadComments();
     };
 
-    const handleDelete = async (id: string) => {
+    const DELETION_REASONS = [
+        'Spam',
+        'Hate speech or harassment',
+        'Off-topic',
+        'Misinformation',
+        'Violation of community rules',
+        'Inappropriate content'
+    ];
+
+    const handleDelete = async (id: string, commentUserId: string) => {
         if (!confirm(t('comments.delete_confirm'))) return;
-        await api.delete(`/Comments/${id}`);
+
+        let reason: string | undefined;
+        if (user?.role === 'Admin' && commentUserId !== user.id) {
+            const reasonIndex = window.prompt(
+                `Select deletion reason (enter number):\n${DELETION_REASONS.map((r, i) => `${i + 1}. ${r}`).join('\n')}`
+            );
+            if (reasonIndex) {
+                const idx = parseInt(reasonIndex) - 1;
+                reason = DELETION_REASONS[idx] || reasonIndex;
+            }
+        }
+
+        const url = reason ? `/Comments/${id}?reason=${encodeURIComponent(reason)}` : `/Comments/${id}`;
+        await api.delete(url);
         loadComments();
     };
 
@@ -108,7 +130,7 @@ export const CommentsSection = ({ articleId }: { articleId: string }) => {
                         )}
 
                         {(user?.role === 'Admin' || user?.id === c.user.id) && (
-                            <button onClick={() => handleDelete(c.id)} className="text-slate-500 hover:text-red-500 transition ml-auto">
+                            <button onClick={() => handleDelete(c.id, c.user.id)} className="text-slate-500 hover:text-red-500 transition ml-auto">
                                 <Trash2 size={14} />
                             </button>
                         )}
