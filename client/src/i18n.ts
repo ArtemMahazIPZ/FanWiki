@@ -108,7 +108,13 @@ const resources = {
                 "login_to_react": "Please login to react",
                 "deleted_message": "[This comment has been deleted]",
                 "unban": "Unban",
-                "error_posting": "Error posting comment"
+                "error_posting": "Error posting comment",
+                "ban_modal_title": "Ban User",
+                "ban_duration": "Duration",
+                "ban_reason": "Reason",
+                "ban_forever": "Forever",
+                "ban_cancel": "Cancel",
+                "ban_button": "Ban"
             },
             "admin": {
                 "dashboard_title": "Admin Dashboard",
@@ -345,7 +351,13 @@ const resources = {
                 "login_to_react": "Увійдіть, щоб ставити реакції",
                 "deleted_message": "[Цей коментар було видалено]",
                 "unban": "Розбан",
-                "error_posting": "Помилка публікації коментаря"
+                "error_posting": "Помилка публікації коментаря",
+                "ban_modal_title": "Заблокувати користувача",
+                "ban_duration": "Тривалість",
+                "ban_reason": "Причина",
+                "ban_forever": "Назавжди",
+                "ban_cancel": "Скасувати",
+                "ban_button": "Заблокувати"
             },
             "admin": {
                 "dashboard_title": "Панель Адміністратора",

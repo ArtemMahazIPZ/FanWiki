@@ -65,7 +65,7 @@ export const ChatWindow = ({ onClose }: { onClose: () => void }) => {
     const filteredUsers = users.filter(u => u.nickname?.toLowerCase().includes(userSearch.toLowerCase()));
 
     return (
-        <div className="fixed bottom-20 right-6 z-50 w-80 md:w-96 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-4 duration-200" style={{ height: '500px' }}>
+        <div className="fixed bottom-4 right-6 z-50 w-80 md:w-96 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-4 duration-200" style={{ height: 'min(500px, calc(100vh - 6rem))' }}>
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-slate-800 bg-slate-950">
                 <div className="flex items-center gap-2">

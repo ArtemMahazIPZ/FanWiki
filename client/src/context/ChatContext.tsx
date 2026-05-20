@@ -18,6 +18,8 @@ interface ChatContextType {
     sendMessage: (recipientId: string, content: string) => Promise<void>;
     loadHistory: (userId: string) => Promise<void>;
     unreadCount: number;
+    showChat: boolean;
+    toggleChat: () => void;
 }
 
 const ChatContext = createContext<ChatContextType | null>(null);
@@ -26,7 +28,10 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     const { user } = useAuth();
     const [messages, setMessages] = useState<Record<string, ChatMessage[]>>({});
     const [unreadCount, setUnreadCount] = useState(0);
+    const [showChat, setShowChat] = useState(false);
     const connectionRef = useRef<signalR.HubConnection | null>(null);
+
+    const toggleChat = () => setShowChat(o => !o);
 
     useEffect(() => {
         if (!user) return;
@@ -72,7 +77,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     };
 
     return (
-        <ChatContext.Provider value={{ messages, sendMessage, loadHistory, unreadCount }}>
+        <ChatContext.Provider value={{ messages, sendMessage, loadHistory, unreadCount, showChat, toggleChat }}>
             {children}
         </ChatContext.Provider>
     );

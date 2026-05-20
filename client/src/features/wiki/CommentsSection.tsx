@@ -24,6 +24,9 @@ export const CommentsSection = ({ articleId }: { articleId: string }) => {
     const [comments, setComments] = useState<Comment[]>([]);
     const [newComment, setNewComment] = useState('');
     const [replyTo, setReplyTo] = useState<string | null>(null);
+    const [banModal, setBanModal] = useState<string | null>(null); // userId
+    const [banDuration, setBanDuration] = useState('60');
+    const [banReason, setBanReason] = useState('');
 
     const loadComments = () => {
         api.get(`/Comments/article/${articleId}`).then(res => setComments(res.data));
@@ -56,6 +59,24 @@ export const CommentsSection = ({ articleId }: { articleId: string }) => {
         loadComments();
     };
 
+    const BAN_DURATIONS = [
+        { label: '5 min', value: '5' },
+        { label: '30 min', value: '30' },
+        { label: '1 hour', value: '60' },
+        { label: '5 hours', value: '300' },
+        { label: '24 hours', value: '1440' },
+        { label: t('comments.ban_forever'), value: '2147483647' },
+    ];
+
+    const BAN_REASONS = [
+        'Spam',
+        'Hate speech / harassment',
+        'Repeated rule violations',
+        'Inappropriate content',
+        'Trolling / disruption',
+        'Other',
+    ];
+
     const DELETION_REASONS = [
         'Spam',
         'Hate speech or harassment',
@@ -84,10 +105,16 @@ export const CommentsSection = ({ articleId }: { articleId: string }) => {
         loadComments();
     };
 
-    const handleBan = async (userId: string) => {
-        const min = prompt(t('comments.ban_prompt'), "60");
-        if (!min) return;
-        await api.post(`/Comments/ban/${userId}?minutes=${min}`);
+    const handleBan = (userId: string) => {
+        setBanDuration('60');
+        setBanReason('');
+        setBanModal(userId);
+    };
+
+    const submitBan = async () => {
+        if (!banModal) return;
+        await api.post(`/Comments/ban/${banModal}?minutes=${banDuration}`);
+        setBanModal(null);
         alert(t('comments.user_banned'));
     };
 
@@ -215,6 +242,53 @@ export const CommentsSection = ({ articleId }: { articleId: string }) => {
             <div className="space-y-2">
                 {comments.map(c => renderComment(c))}
             </div>
+
+            {banModal && (
+                <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setBanModal(null)}>
+                    <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 w-full max-w-sm shadow-2xl" onClick={e => e.stopPropagation()}>
+                        <h3 className="text-lg font-bold text-white mb-5">{t('comments.ban_modal_title')}</h3>
+
+                        <div className="mb-5">
+                            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">{t('comments.ban_duration')}</p>
+                            <div className="grid grid-cols-3 gap-2">
+                                {BAN_DURATIONS.map(d => (
+                                    <button
+                                        key={d.value}
+                                        onClick={() => setBanDuration(d.value)}
+                                        className={`px-3 py-2 rounded-lg text-sm font-medium transition ${banDuration === d.value ? 'bg-orange-600 text-white shadow-lg shadow-orange-900/30' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`}
+                                    >
+                                        {d.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="mb-6">
+                            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">{t('comments.ban_reason')}</p>
+                            <div className="space-y-1.5">
+                                {BAN_REASONS.map(r => (
+                                    <button
+                                        key={r}
+                                        onClick={() => setBanReason(r)}
+                                        className={`w-full text-left px-3 py-2 rounded-lg text-sm transition ${banReason === r ? 'bg-orange-600/20 border border-orange-500/40 text-orange-300' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`}
+                                    >
+                                        {r}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3">
+                            <button onClick={() => setBanModal(null)} className="flex-1 px-4 py-2 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 transition text-sm font-medium">
+                                {t('comments.ban_cancel')}
+                            </button>
+                            <button onClick={submitBan} className="flex-1 px-4 py-2 rounded-lg bg-orange-600 hover:bg-orange-500 text-white transition text-sm font-bold shadow-lg shadow-orange-900/20">
+                                {t('comments.ban_button')}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
