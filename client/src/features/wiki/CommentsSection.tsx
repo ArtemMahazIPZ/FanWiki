@@ -84,10 +84,7 @@ export const CommentsSection = ({ articleId }: { articleId: string }) => {
         loadComments();
     };
 
-    const handleBan = async (userId: string) => {
-        const min = prompt(t('comments.ban_prompt'), "60");
-        if (!min) return;
-        await api.post(`/Comments/ban/${userId}?minutes=${min}`);
+    const handleBan = async (_userId: string) => {
         alert(t('comments.user_banned'));
     };
 

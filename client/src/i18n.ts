@@ -108,7 +108,6 @@ const resources = {
                 "login_to_react": "Please login to react",
                 "deleted_message": "[This comment has been deleted]",
                 "unban": "Unban",
-                "error_posting": "Error posting comment"
             },
             "admin": {
                 "dashboard_title": "Admin Dashboard",
@@ -345,7 +344,6 @@ const resources = {
                 "login_to_react": "Увійдіть, щоб ставити реакції",
                 "deleted_message": "[Цей коментар було видалено]",
                 "unban": "Розбан",
-                "error_posting": "Помилка публікації коментаря"
             },
             "admin": {
                 "dashboard_title": "Панель Адміністратора",
