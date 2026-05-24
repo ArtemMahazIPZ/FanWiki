@@ -84,6 +84,7 @@ export const CommentsSection = ({ articleId }: { articleId: string }) => {
         loadComments();
     };
 
+    const handleBan = async (_userId: string) => {
         alert(t('comments.user_banned'));
     };
 
