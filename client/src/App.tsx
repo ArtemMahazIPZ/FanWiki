@@ -11,12 +11,10 @@ import { ResetPasswordPage } from './features/auth/ResetPasswordPage';
 import { ReportsPage } from './features/admin/ReportsPage';
 import { AdminDashboard } from "./features/admin/AdminDashboard.tsx";
 import { CommunityRulesPage } from './features/wiki/CommunityRulesPage';
-import { ChatWindow } from './features/chat/ChatWindow';
 import { useAuth } from './context/AuthContext';
-import { useChat } from './context/ChatContext';
 
 function App() {
-    const { user } = useAuth();
+    useAuth();
 
     return (
         <div className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-emerald-500/30">
