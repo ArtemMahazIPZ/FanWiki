@@ -229,15 +229,16 @@ export const ArticlePage = () => {
 
                         {meta.alsoKnownAs && meta.alsoKnownAs.length > 0 && (
                             <div className="border-b border-slate-800 pb-2 last:border-0 mt-3">
-                                <span className="block font-bold text-slate-400 text-xs uppercase mb-2">{t('article.also_known_as')}</span>
-                                <details>
-                                    <summary className="text-emerald-300 text-xs cursor-pointer hover:text-emerald-200">{meta.alsoKnownAs[0]}{meta.alsoKnownAs.length > 1 ? ` +${meta.alsoKnownAs.length - 1}` : ''}</summary>
-                                    <ul className="mt-1 space-y-1">
-                                        {meta.alsoKnownAs.map((aka, i) => (
-                                            <li key={i} className="text-emerald-300 text-xs">{aka}</li>
-                                        ))}
-                                    </ul>
-                                </details>
+                                <span className="block font-bold text-slate-400 text-xs uppercase mb-2">
+                                    {meta.gender === 'Female'
+                                        ? t('article.also_known_as_Female', { defaultValue: t('article.also_known_as') })
+                                        : t('article.also_known_as')}
+                                </span>
+                                <ul className="flex flex-col gap-1 items-end">
+                                    {meta.alsoKnownAs.map((aka, i) => (
+                                        <li key={i} className="text-emerald-300 bg-emerald-900/20 border border-emerald-900/50 text-xs px-2 py-1 rounded w-fit text-right">{aka}</li>
+                                    ))}
+                                </ul>
                             </div>
                         )}
 
