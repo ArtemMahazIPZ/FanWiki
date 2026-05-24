@@ -293,7 +293,8 @@ const resources = {
                 "birth_year": "Рік народження",
                 "birth_place": "Місце народження",
                 "age": "Вік",
-                "also_known_as": "Також відомий як"
+                "also_known_as": "Також відомий як",
+                "also_known_as_Female": "Також відома як"
             },
             "meta_values": {
                 "Alive": "Живий",
