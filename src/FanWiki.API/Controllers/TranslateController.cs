@@ -35,19 +35,49 @@ public class TranslateController(ITranslationService translationService) : Contr
 
         try
         {
-            var titleTask = translationService.TranslateAsync(dto.Title ?? string.Empty, dto.SourceLang, dto.TargetLang, ct);
-            var quoteTask = !string.IsNullOrWhiteSpace(dto.Quote)
-                ? translationService.TranslateAsync(dto.Quote, dto.SourceLang, dto.TargetLang, ct)
-                : Task.FromResult(string.Empty);
-            var contentTask = translationService.TranslateAsync(dto.Content ?? string.Empty, dto.SourceLang, dto.TargetLang, ct);
+            var sl = dto.SourceLang;
+            var tl = dto.TargetLang;
 
-            await Task.WhenAll(titleTask, quoteTask, contentTask);
+            static async Task<string?> TranslateOrNull(ITranslationService svc, string? text, string sl, string tl, CancellationToken ct)
+            {
+                if (string.IsNullOrWhiteSpace(text)) return null;
+                return await svc.TranslateAsync(text, sl, tl, ct);
+            }
+
+            static async Task<string[]> TranslateArray(ITranslationService svc, string[]? items, string sl, string tl, CancellationToken ct)
+            {
+                if (items is null || items.Length == 0) return [];
+                return await Task.WhenAll(items.Select(n => svc.TranslateAsync(n, sl, tl, ct)));
+            }
+
+            var titleTask       = translationService.TranslateAsync(dto.Title ?? string.Empty, sl, tl, ct);
+            var quoteTask       = TranslateOrNull(translationService, dto.Quote, sl, tl, ct);
+            var contentTask     = translationService.TranslateAsync(dto.Content ?? string.Empty, sl, tl, ct);
+            var voiceActorTask  = TranslateOrNull(translationService, dto.VoiceActor, sl, tl, ct);
+            var birthPlaceTask  = TranslateOrNull(translationService, dto.BirthPlace, sl, tl, ct);
+            var familyTask      = TranslateArray(translationService, dto.FamilyNames, sl, tl, ct);
+            var alliesTask      = TranslateArray(translationService, dto.AlliesNames, sl, tl, ct);
+            var enemiesTask     = TranslateArray(translationService, dto.EnemiesNames, sl, tl, ct);
+            var alsoKnownAsTask = TranslateArray(translationService, dto.AlsoKnownAs, sl, tl, ct);
+
+            await Task.WhenAll(titleTask, quoteTask, contentTask, voiceActorTask, birthPlaceTask,
+                familyTask, alliesTask, enemiesTask, alsoKnownAsTask);
 
             return Ok(new TranslateBatchResponseDto(
-                await titleTask,
-                await quoteTask,
-                await contentTask
+                titleTask.Result,
+                quoteTask.Result ?? string.Empty,
+                contentTask.Result,
+                voiceActorTask.Result,
+                birthPlaceTask.Result,
+                familyTask.Result,
+                alliesTask.Result,
+                enemiesTask.Result,
+                alsoKnownAsTask.Result
             ));
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+        {
+            return StatusCode(429, new { message = "Translation service is rate-limited. Please wait a moment and try again." });
         }
         catch (Exception ex)
         {

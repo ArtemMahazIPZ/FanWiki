@@ -66,8 +66,8 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddScoped<IWikiService, WikiService>();
 builder.Services.AddSingleton<IImageService, CloudinaryImageService>();
-builder.Services.AddHttpClient("DeepL");
-builder.Services.AddScoped<ITranslationService, DeepLTranslationService>();
+builder.Services.AddHttpClient("GoogleTranslate");
+builder.Services.AddScoped<ITranslationService, GoogleTranslationService>();
 
 builder.Services.AddSignalR();
 

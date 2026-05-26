@@ -37,4 +37,5 @@ public class CreateArticleDto
     public string? TitleEn { get; set; }
     public string? ContentEn { get; set; }
     public string? QuoteEn { get; set; }
+    public string? MetadataEn { get; set; }
 }

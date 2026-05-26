@@ -164,7 +164,7 @@ public class WikiService(IArticleRepository repository) : IWikiService
                 Title = dto.TitleEn,
                 Content = dto.ContentEn,
                 Quote = dto.QuoteEn,
-                Metadata = dto.Metadata
+                Metadata = dto.MetadataEn ?? dto.Metadata
             });
         }
 
@@ -247,6 +247,7 @@ public class WikiService(IArticleRepository repository) : IWikiService
                 enTranslation.Title = dto.TitleEn;
                 enTranslation.Content = dto.ContentEn;
                 enTranslation.Quote = dto.QuoteEn;
+                enTranslation.Metadata = dto.MetadataEn ?? enTranslation.Metadata;
             }
             else
             {
@@ -258,7 +259,7 @@ public class WikiService(IArticleRepository repository) : IWikiService
                     Title = dto.TitleEn,
                     Content = dto.ContentEn,
                     Quote = dto.QuoteEn,
-                    Metadata = dto.Metadata
+                    Metadata = dto.MetadataEn ?? dto.Metadata
                 };
                 await repository.AddTranslationAsync(newEn, ct);
                 article.Translations.Add(newEn);

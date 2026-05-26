@@ -43,6 +43,18 @@ interface ArticleMetadata {
     [key: string]: string | number | string[] | LinkedItem[] | undefined;
 }
 
+interface EnData {
+    title: string;
+    content: string;
+    quote: string;
+    voiceActor: string;
+    birthPlace: string;
+    familyNames: string[];
+    alliesNames: string[];
+    enemiesNames: string[];
+    alsoKnownAs: string[];
+}
+
 export const ArticleEditor = () => {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -71,7 +83,17 @@ export const ArticleEditor = () => {
     const [linkingField, setLinkingField] = useState<ListField | null>(null);
     const [linkingIndex, setLinkingIndex] = useState<number | null>(null);
 
-    const [enData, setEnData] = useState({ title: '', content: '', quote: '' });
+    const [enData, setEnData] = useState<EnData>({
+        title: '',
+        content: '',
+        quote: '',
+        voiceActor: '',
+        birthPlace: '',
+        familyNames: [],
+        alliesNames: [],
+        enemiesNames: [],
+        alsoKnownAs: []
+    });
     const [isTranslating, setIsTranslating] = useState(false);
     const [translateError, setTranslateError] = useState<string | null>(null);
 
@@ -124,7 +146,6 @@ export const ArticleEditor = () => {
                 if (data.metadata) {
                     try {
                         const parsed = JSON.parse(data.metadata);
-                        // Normalize family/allies/enemies to LinkedItem[]
                         const normalizeLinked = (arr: any[]): LinkedItem[] =>
                             (arr || []).map((x: any) =>
                                 typeof x === 'string' ? { name: x } : x
@@ -144,10 +165,25 @@ export const ArticleEditor = () => {
             // Pre-load the English translation if one already exists
             api.get<Article>(`/Wiki/${id}?lang=en`).then(res => {
                 if (res.data.languageCode === 'en') {
+                    let enMeta: ArticleMetadata = {};
+                    if (res.data.metadata) {
+                        try { enMeta = JSON.parse(res.data.metadata); } catch { /* ignore */ }
+                    }
+                    const normalizeLinked = (arr: any[]): LinkedItem[] =>
+                        (arr || []).map((x: any) => typeof x === 'string' ? { name: x } : x);
+                    const enFamily  = normalizeLinked((enMeta.family  as any[]) || []);
+                    const enAllies  = normalizeLinked((enMeta.allies  as any[]) || []);
+                    const enEnemies = normalizeLinked((enMeta.enemies as any[]) || []);
                     setEnData({
-                        title: res.data.title,
-                        content: res.data.content,
-                        quote: res.data.quote || ''
+                        title:       res.data.title,
+                        content:     res.data.content,
+                        quote:       res.data.quote || '',
+                        voiceActor:  (enMeta.voiceActor  as string) || '',
+                        birthPlace:  (enMeta.birthPlace  as string) || '',
+                        familyNames: enFamily.map(x => x.name),
+                        alliesNames: enAllies.map(x => x.name),
+                        enemiesNames: enEnemies.map(x => x.name),
+                        alsoKnownAs: (enMeta.alsoKnownAs as string[]) || []
                     });
                 }
             }).catch(() => { /* no English translation yet */ });
@@ -164,22 +200,57 @@ export const ArticleEditor = () => {
         setTranslateError(null);
         setIsTranslating(true);
         try {
-            const uaContent = stripHtml(editor?.getHTML() || formData.content);
-            const res = await api.post<{ title: string; quote: string; content: string }>('/Translate/batch', {
-                title: formData.title,
-                quote: formData.quote,
-                content: uaContent,
-                sourceLang: 'UK',
-                targetLang: 'EN'
+            const uaContent   = stripHtml(editor?.getHTML() || formData.content);
+            const familyNames  = ((metadata.family  as LinkedItem[]) || []).map(x => x.name).filter(Boolean);
+            const alliesNames  = ((metadata.allies  as LinkedItem[]) || []).map(x => x.name).filter(Boolean);
+            const enemiesNames = ((metadata.enemies as LinkedItem[]) || []).map(x => x.name).filter(Boolean);
+            const alsoKnownAs  = ((metadata.alsoKnownAs as string[]) || []).filter(Boolean);
+
+            const res = await api.post<{
+                title: string;
+                quote: string;
+                content: string;
+                voiceActor:  string | null;
+                birthPlace:  string | null;
+                familyNames:  string[];
+                alliesNames:  string[];
+                enemiesNames: string[];
+                alsoKnownAs:  string[];
+            }>('/Translate/batch', {
+                title:        formData.title,
+                quote:        formData.quote,
+                content:      uaContent,
+                voiceActor:   (metadata.voiceActor  as string) || null,
+                birthPlace:   (metadata.birthPlace  as string) || null,
+                familyNames:  familyNames.length  > 0 ? familyNames  : null,
+                alliesNames:  alliesNames.length  > 0 ? alliesNames  : null,
+                enemiesNames: enemiesNames.length > 0 ? enemiesNames : null,
+                alsoKnownAs:  alsoKnownAs.length  > 0 ? alsoKnownAs  : null,
+                sourceLang: 'uk',
+                targetLang: 'en'
             });
+
             setEnData({
-                title: res.data.title,
-                content: res.data.content,
-                quote: res.data.quote
+                title:        res.data.title,
+                content:      res.data.content,
+                quote:        res.data.quote,
+                voiceActor:   res.data.voiceActor  || '',
+                birthPlace:   res.data.birthPlace  || '',
+                familyNames:  res.data.familyNames  || [],
+                alliesNames:  res.data.alliesNames  || [],
+                enemiesNames: res.data.enemiesNames || [],
+                alsoKnownAs:  res.data.alsoKnownAs  || []
             });
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
-            alert('Translation failed');
+            const status = err?.response?.status;
+            if (status === 429) {
+                alert('The translation service is currently rate-limited. Please wait a few seconds and try again.');
+            } else if (status === 503) {
+                alert('The translation service is temporarily unavailable. Please try again later.');
+            } else {
+                alert('Translation failed. Please check your connection and try again.');
+            }
             setTranslateError(t('editor.translate_error'));
         } finally {
             setIsTranslating(false);
@@ -326,6 +397,27 @@ export const ArticleEditor = () => {
             data.append('TitleEn', enData.title);
             data.append('ContentEn', enData.content);
             if (enData.quote) data.append('QuoteEn', enData.quote);
+
+            // Build English metadata: copy non-translatable fields, override with translated ones
+            const enMetadata = { ...cleanMetadata };
+            if (enData.voiceActor)  enMetadata.voiceActor  = enData.voiceActor;
+            if (enData.birthPlace)  enMetadata.birthPlace  = enData.birthPlace;
+            if (enData.familyNames.length > 0) {
+                const src = (cleanMetadata.family as LinkedItem[]) || [];
+                enMetadata.family = enData.familyNames.map((name, i) => ({ name, slug: src[i]?.slug }));
+            }
+            if (enData.alliesNames.length > 0) {
+                const src = (cleanMetadata.allies as LinkedItem[]) || [];
+                enMetadata.allies = enData.alliesNames.map((name, i) => ({ name, slug: src[i]?.slug }));
+            }
+            if (enData.enemiesNames.length > 0) {
+                const src = (cleanMetadata.enemies as LinkedItem[]) || [];
+                enMetadata.enemies = enData.enemiesNames.map((name, i) => ({ name, slug: src[i]?.slug }));
+            }
+            if (enData.alsoKnownAs.length > 0) {
+                enMetadata.alsoKnownAs = enData.alsoKnownAs;
+            }
+            data.append('MetadataEn', JSON.stringify(enMetadata));
         }
 
         try {
@@ -551,7 +643,8 @@ export const ArticleEditor = () => {
 
                 {/* ── English Translation Section ── */}
                 <div className="bg-slate-900 p-6 rounded-xl border border-slate-700 shadow-lg space-y-5">
-                    <div className="flex items-center justify-between">
+                    {/* Sticky header row with the Auto-Translate button */}
+                    <div className="sticky top-4 z-50 bg-slate-900/95 backdrop-blur-sm flex items-center justify-between py-2 -mx-1 px-1 rounded-lg">
                         <h2 className="text-xl font-bold text-slate-200 flex items-center gap-2">
                             🌐 {t('editor.translation_en_section')}
                         </h2>
@@ -602,6 +695,109 @@ export const ArticleEditor = () => {
                             onChange={e => setEnData(prev => ({ ...prev, quote: e.target.value }))}
                         />
                     </div>
+
+                    {/* Character metadata fields for English */}
+                    {formData.category === 'Character' && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-950/50 p-4 rounded border border-slate-700">
+                            <p className="col-span-full text-xs font-bold text-slate-400 uppercase">Character Fields (EN)</p>
+
+                            <div>
+                                <label className="text-xs text-slate-400 uppercase font-bold">🎙️ {t('editor.voice_actor_label')} (EN)</label>
+                                <input
+                                    className="w-full bg-slate-900 p-2 rounded border border-slate-600 mt-1 text-sm focus:border-cyan-500 outline-none"
+                                    value={enData.voiceActor}
+                                    placeholder="English voice actor..."
+                                    onChange={e => setEnData(prev => ({ ...prev, voiceActor: e.target.value }))}
+                                />
+                            </div>
+
+                            <div>
+                                <label className="text-xs text-slate-400 uppercase font-bold">{t('article.birth_place')} (EN)</label>
+                                <input
+                                    className="w-full bg-slate-900 p-2 rounded border border-slate-600 mt-1 text-sm focus:border-cyan-500 outline-none"
+                                    value={enData.birthPlace}
+                                    placeholder="English birth place..."
+                                    onChange={e => setEnData(prev => ({ ...prev, birthPlace: e.target.value }))}
+                                />
+                            </div>
+
+                            {enData.familyNames.length > 0 && (
+                                <div className="col-span-full">
+                                    <label className="text-xs text-slate-400 uppercase font-bold">{t('article.family')} (EN)</label>
+                                    <div className="space-y-1 mt-1">
+                                        {enData.familyNames.map((name, i) => (
+                                            <input key={i}
+                                                className="w-full bg-slate-900 p-2 rounded border border-slate-600 text-sm focus:border-cyan-500 outline-none"
+                                                value={name}
+                                                onChange={e => {
+                                                    const updated = [...enData.familyNames];
+                                                    updated[i] = e.target.value;
+                                                    setEnData(prev => ({ ...prev, familyNames: updated }));
+                                                }}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {enData.alliesNames.length > 0 && (
+                                <div className="col-span-full">
+                                    <label className="text-xs text-slate-400 uppercase font-bold">{t('article.allies')} (EN)</label>
+                                    <div className="space-y-1 mt-1">
+                                        {enData.alliesNames.map((name, i) => (
+                                            <input key={i}
+                                                className="w-full bg-slate-900 p-2 rounded border border-slate-600 text-sm focus:border-cyan-500 outline-none"
+                                                value={name}
+                                                onChange={e => {
+                                                    const updated = [...enData.alliesNames];
+                                                    updated[i] = e.target.value;
+                                                    setEnData(prev => ({ ...prev, alliesNames: updated }));
+                                                }}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {enData.enemiesNames.length > 0 && (
+                                <div className="col-span-full">
+                                    <label className="text-xs text-slate-400 uppercase font-bold">{t('article.enemies')} (EN)</label>
+                                    <div className="space-y-1 mt-1">
+                                        {enData.enemiesNames.map((name, i) => (
+                                            <input key={i}
+                                                className="w-full bg-slate-900 p-2 rounded border border-slate-600 text-sm focus:border-cyan-500 outline-none"
+                                                value={name}
+                                                onChange={e => {
+                                                    const updated = [...enData.enemiesNames];
+                                                    updated[i] = e.target.value;
+                                                    setEnData(prev => ({ ...prev, enemiesNames: updated }));
+                                                }}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {enData.alsoKnownAs.length > 0 && (
+                                <div className="col-span-full">
+                                    <label className="text-xs text-slate-400 uppercase font-bold">{t('article.also_known_as')} (EN)</label>
+                                    <div className="space-y-1 mt-1">
+                                        {enData.alsoKnownAs.map((name, i) => (
+                                            <input key={i}
+                                                className="w-full bg-slate-900 p-2 rounded border border-slate-600 text-sm focus:border-cyan-500 outline-none"
+                                                value={name}
+                                                onChange={e => {
+                                                    const updated = [...enData.alsoKnownAs];
+                                                    updated[i] = e.target.value;
+                                                    setEnData(prev => ({ ...prev, alsoKnownAs: updated }));
+                                                }}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
 
                     <div>
                         <label className="block text-xs font-bold text-slate-400 uppercase mb-2">
