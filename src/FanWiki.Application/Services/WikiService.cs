@@ -142,6 +142,32 @@ public class WikiService(IArticleRepository repository) : IWikiService
             alignmentEnum = parsedAlign;
         }
 
+        var translations = new List<ArticleTranslation>
+        {
+            new ArticleTranslation
+            {
+                LanguageCode = dto.LanguageCode,
+                Title = dto.Title,
+                Content = dto.Content,
+                Quote = dto.Quote,
+                Metadata = dto.Metadata
+            }
+        };
+
+        if (!string.IsNullOrWhiteSpace(dto.TitleEn) &&
+            !string.IsNullOrWhiteSpace(dto.ContentEn) &&
+            !dto.LanguageCode.Equals("en", StringComparison.OrdinalIgnoreCase))
+        {
+            translations.Add(new ArticleTranslation
+            {
+                LanguageCode = "en",
+                Title = dto.TitleEn,
+                Content = dto.ContentEn,
+                Quote = dto.QuoteEn,
+                Metadata = dto.Metadata
+            });
+        }
+
         var article = new Article
         {
             Slug = dto.Slug,
@@ -150,17 +176,7 @@ public class WikiService(IArticleRepository repository) : IWikiService
             Category = categoryEnum,
             Alignment = alignmentEnum,
             GameName = dto.GameName,
-            Translations =
-            [
-                new ArticleTranslation
-                {
-                    LanguageCode = dto.LanguageCode,
-                    Title = dto.Title,
-                    Content = dto.Content,
-                    Quote = dto.Quote,
-                    Metadata = dto.Metadata
-                }
-            ]
+            Translations = translations
         };
 
         await repository.AddAsync(article, ct);
@@ -216,9 +232,37 @@ public class WikiService(IArticleRepository repository) : IWikiService
                  Quote = dto.Quote,
                  Metadata = dto.Metadata
              };
-             
+
              await repository.AddTranslationAsync(newTranslation, ct);
              article.Translations.Add(newTranslation);
+        }
+
+        if (!string.IsNullOrWhiteSpace(dto.TitleEn) &&
+            !string.IsNullOrWhiteSpace(dto.ContentEn) &&
+            !dto.LanguageCode.Equals("en", StringComparison.OrdinalIgnoreCase))
+        {
+            var enTranslation = article.Translations.FirstOrDefault(t => t.LanguageCode == "en");
+            if (enTranslation != null)
+            {
+                enTranslation.Title = dto.TitleEn;
+                enTranslation.Content = dto.ContentEn;
+                enTranslation.Quote = dto.QuoteEn;
+            }
+            else
+            {
+                var newEn = new ArticleTranslation
+                {
+                    Id = Guid.NewGuid(),
+                    ArticleId = article.Id,
+                    LanguageCode = "en",
+                    Title = dto.TitleEn,
+                    Content = dto.ContentEn,
+                    Quote = dto.QuoteEn,
+                    Metadata = dto.Metadata
+                };
+                await repository.AddTranslationAsync(newEn, ct);
+                article.Translations.Add(newEn);
+            }
         }
 
         await repository.SaveChangesAsync(ct);
