@@ -142,17 +142,15 @@ export const ArticleEditor = () => {
             });
 
             // Pre-load the English translation if one already exists
-            if (!i18n.language.startsWith('en')) {
-                api.get<Article>(`/Wiki/${id}?lang=en`).then(res => {
-                    if (res.data.languageCode === 'en') {
-                        setEnData({
-                            title: res.data.title,
-                            content: res.data.content,
-                            quote: res.data.quote || ''
-                        });
-                    }
-                }).catch(() => { /* no English translation yet */ });
-            }
+            api.get<Article>(`/Wiki/${id}?lang=en`).then(res => {
+                if (res.data.languageCode === 'en') {
+                    setEnData({
+                        title: res.data.title,
+                        content: res.data.content,
+                        quote: res.data.quote || ''
+                    });
+                }
+            }).catch(() => { /* no English translation yet */ });
         }
     }, [id, isEdit, editor, i18n.language]);
 
@@ -550,7 +548,7 @@ export const ArticleEditor = () => {
                 </div>
 
                 {/* ── English Translation Section ── */}
-                {!formData.languageCode.startsWith('en') && (
+                {(!formData.languageCode.startsWith('en') || !enData.title || !enData.content) && (
                     <div className="bg-slate-900 p-6 rounded-xl border border-slate-700 shadow-lg space-y-5">
                         <div className="flex items-center justify-between">
                             <h2 className="text-xl font-bold text-slate-200 flex items-center gap-2">
