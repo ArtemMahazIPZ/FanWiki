@@ -165,19 +165,21 @@ export const ArticleEditor = () => {
         setIsTranslating(true);
         try {
             const uaContent = stripHtml(editor?.getHTML() || formData.content);
-            const [titleRes, contentRes, quoteRes] = await Promise.all([
-                api.post<{ translatedText: string }>('/Translate', { text: formData.title, sourceLang: 'UK', targetLang: 'EN' }),
-                api.post<{ translatedText: string }>('/Translate', { text: uaContent, sourceLang: 'UK', targetLang: 'EN' }),
-                formData.quote
-                    ? api.post<{ translatedText: string }>('/Translate', { text: formData.quote, sourceLang: 'UK', targetLang: 'EN' })
-                    : Promise.resolve(null)
-            ]);
-            setEnData({
-                title: titleRes.data.translatedText,
-                content: contentRes.data.translatedText,
-                quote: quoteRes?.data.translatedText ?? ''
+            const res = await api.post<{ title: string; quote: string; content: string }>('/Translate/batch', {
+                title: formData.title,
+                quote: formData.quote,
+                content: uaContent,
+                sourceLang: 'UK',
+                targetLang: 'EN'
             });
-        } catch {
+            setEnData({
+                title: res.data.title,
+                content: res.data.content,
+                quote: res.data.quote
+            });
+        } catch (err) {
+            console.error(err);
+            alert('Translation failed');
             setTranslateError(t('editor.translate_error'));
         } finally {
             setIsTranslating(false);
@@ -548,74 +550,72 @@ export const ArticleEditor = () => {
                 </div>
 
                 {/* ── English Translation Section ── */}
-                {(!formData.languageCode.startsWith('en') || !enData.title || !enData.content) && (
-                    <div className="bg-slate-900 p-6 rounded-xl border border-slate-700 shadow-lg space-y-5">
-                        <div className="flex items-center justify-between">
-                            <h2 className="text-xl font-bold text-slate-200 flex items-center gap-2">
-                                🌐 {t('editor.translation_en_section')}
-                            </h2>
-                            <button
-                                type="button"
-                                onClick={handleAutoTranslate}
-                                disabled={isTranslating || !formData.title || !(editor?.getText() || formData.content)}
-                                className="flex items-center gap-2 bg-cyan-700 hover:bg-cyan-600 disabled:opacity-50 disabled:cursor-not-allowed px-5 py-2 rounded-lg font-semibold text-white text-sm transition shadow-md shadow-cyan-900/30"
-                            >
-                                {isTranslating ? (
-                                    <>
-                                        <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                        {t('editor.translating')}
-                                    </>
-                                ) : (
-                                    <>✨ {t('editor.auto_translate')}</>
-                                )}
-                            </button>
-                        </div>
-
-                        {translateError && (
-                            <p className="text-red-400 text-sm bg-red-950/40 border border-red-800 px-4 py-2 rounded">
-                                {translateError}
-                            </p>
-                        )}
-
-                        <div>
-                            <label className="block text-xs font-bold text-slate-400 uppercase mb-2">
-                                {t('editor.label_title_en')}
-                            </label>
-                            <input
-                                className="bg-slate-950 p-3 rounded border border-slate-700 w-full text-white font-bold text-lg focus:border-cyan-500 outline-none"
-                                value={enData.title}
-                                placeholder="English title..."
-                                onChange={e => setEnData(prev => ({ ...prev, title: e.target.value }))}
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-xs font-bold text-slate-400 uppercase mb-2">
-                                {t('editor.label_quote_en')}
-                            </label>
-                            <textarea
-                                rows={2}
-                                className="bg-slate-950 p-3 rounded border border-slate-700 w-full text-cyan-200 italic focus:border-cyan-500 outline-none resize-none"
-                                value={enData.quote}
-                                placeholder="English quote..."
-                                onChange={e => setEnData(prev => ({ ...prev, quote: e.target.value }))}
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-xs font-bold text-slate-400 uppercase mb-2">
-                                {t('editor.label_content_en')}
-                            </label>
-                            <textarea
-                                rows={12}
-                                className="bg-slate-950 p-3 rounded border border-slate-700 w-full text-slate-300 leading-relaxed focus:border-cyan-500 outline-none resize-y font-mono text-sm"
-                                value={enData.content}
-                                placeholder="English content..."
-                                onChange={e => setEnData(prev => ({ ...prev, content: e.target.value }))}
-                            />
-                        </div>
+                <div className="bg-slate-900 p-6 rounded-xl border border-slate-700 shadow-lg space-y-5">
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-xl font-bold text-slate-200 flex items-center gap-2">
+                            🌐 {t('editor.translation_en_section')}
+                        </h2>
+                        <button
+                            type="button"
+                            onClick={handleAutoTranslate}
+                            disabled={isTranslating || !formData.title || !(editor?.getText() || formData.content)}
+                            className="flex items-center gap-2 bg-cyan-700 hover:bg-cyan-600 disabled:opacity-50 disabled:cursor-not-allowed px-5 py-2 rounded-lg font-semibold text-white text-sm transition shadow-md shadow-cyan-900/30"
+                        >
+                            {isTranslating ? (
+                                <>
+                                    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                    {t('editor.translating')}
+                                </>
+                            ) : (
+                                <>✨ {t('editor.auto_translate')}</>
+                            )}
+                        </button>
                     </div>
-                )}
+
+                    {translateError && (
+                        <p className="text-red-400 text-sm bg-red-950/40 border border-red-800 px-4 py-2 rounded">
+                            {translateError}
+                        </p>
+                    )}
+
+                    <div>
+                        <label className="block text-xs font-bold text-slate-400 uppercase mb-2">
+                            {t('editor.label_title_en')}
+                        </label>
+                        <input
+                            className="bg-slate-950 p-3 rounded border border-slate-700 w-full text-white font-bold text-lg focus:border-cyan-500 outline-none"
+                            value={enData.title}
+                            placeholder="English title..."
+                            onChange={e => setEnData(prev => ({ ...prev, title: e.target.value }))}
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-bold text-slate-400 uppercase mb-2">
+                            {t('editor.label_quote_en')}
+                        </label>
+                        <textarea
+                            rows={2}
+                            className="bg-slate-950 p-3 rounded border border-slate-700 w-full text-cyan-200 italic focus:border-cyan-500 outline-none resize-none"
+                            value={enData.quote}
+                            placeholder="English quote..."
+                            onChange={e => setEnData(prev => ({ ...prev, quote: e.target.value }))}
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-bold text-slate-400 uppercase mb-2">
+                            {t('editor.label_content_en')}
+                        </label>
+                        <textarea
+                            rows={12}
+                            className="bg-slate-950 p-3 rounded border border-slate-700 w-full text-slate-300 leading-relaxed focus:border-cyan-500 outline-none resize-y font-mono text-sm"
+                            value={enData.content}
+                            placeholder="English content..."
+                            onChange={e => setEnData(prev => ({ ...prev, content: e.target.value }))}
+                        />
+                    </div>
+                </div>
 
                 <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-lg">
                     <h2 className="text-xl font-bold text-slate-200 mb-4 flex items-center gap-2">🖼️ {t('editor.label_image')}</h2>
