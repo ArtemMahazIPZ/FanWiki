@@ -168,7 +168,14 @@ const resources = {
                 "no_articles": "No articles found",
                 "upload_image": "Upload Image",
                 "image_width_px": "Width (px or %)",
-                "caption_placeholder": "Caption..."
+                "caption_placeholder": "Caption...",
+                "translation_en_section": "Translation (English)",
+                "label_title_en": "Title (EN)",
+                "label_content_en": "Content (EN)",
+                "label_quote_en": "Quote (EN)",
+                "auto_translate": "Auto-Translate",
+                "translating": "Translating...",
+                "translate_error": "Translation failed"
             },
             "auth": {
                 "login_title": "Sign In",
@@ -405,7 +412,14 @@ const resources = {
                 "no_articles": "Статей не знайдено",
                 "upload_image": "Завантажити зображення",
                 "image_width_px": "Ширина (px або %)",
-                "caption_placeholder": "Підпис..."
+                "caption_placeholder": "Підпис...",
+                "translation_en_section": "Переклад (Англійська)",
+                "label_title_en": "Назва (EN)",
+                "label_content_en": "Контент (EN)",
+                "label_quote_en": "Цитата (EN)",
+                "auto_translate": "Авто-переклад",
+                "translating": "Перекладаю...",
+                "translate_error": "Помилка перекладу"
             },
             "auth": {
                 "login_title": "Вхід в систему",
