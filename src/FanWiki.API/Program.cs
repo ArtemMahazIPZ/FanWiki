@@ -66,7 +66,12 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddScoped<IWikiService, WikiService>();
 builder.Services.AddSingleton<IImageService, CloudinaryImageService>();
-builder.Services.AddHttpClient("GoogleTranslate");
+builder.Services.AddHttpClient("GoogleTranslate", client =>
+{
+    client.DefaultRequestHeaders.UserAgent.ParseAdd(
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36");
+    client.Timeout = TimeSpan.FromSeconds(60);
+});
 builder.Services.AddScoped<ITranslationService, GoogleTranslationService>();
 
 builder.Services.AddSignalR();
