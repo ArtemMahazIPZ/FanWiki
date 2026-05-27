@@ -59,6 +59,7 @@ const resources = {
                 "enemies": "Enemies",
                 "alignment": "Alignment",
                 "fire_rate": "RPM",
+                "birth_date": "Date of Birth",
                 "birth_year": "Birth Year",
                 "birth_place": "Place of Birth",
                 "age": "Age",
@@ -175,7 +176,8 @@ const resources = {
                 "label_quote_en": "Quote (EN)",
                 "auto_translate": "Auto-Translate",
                 "translating": "Translating...",
-                "translate_error": "Translation failed"
+                "translate_error": "Translation failed",
+                "birth_date_placeholder": "e.g. June 25, 1885"
             },
             "auth": {
                 "login_title": "Sign In",
@@ -297,6 +299,7 @@ const resources = {
                 "enemies": "Вороги",
                 "alignment": "Характер",
                 "fire_rate": "RPM",
+                "birth_date": "Дата народження",
                 "birth_year": "Рік народження",
                 "birth_place": "Місце народження",
                 "age": "Вік",
@@ -419,7 +422,8 @@ const resources = {
                 "label_quote_en": "Цитата (EN)",
                 "auto_translate": "Авто-переклад",
                 "translating": "Перекладаю...",
-                "translate_error": "Помилка перекладу"
+                "translate_error": "Помилка перекладу",
+                "birth_date_placeholder": "напр. 25 червня 1885 року"
             },
             "auth": {
                 "login_title": "Вхід в систему",

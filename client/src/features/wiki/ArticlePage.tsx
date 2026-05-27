@@ -85,7 +85,8 @@ interface ArticleMetadata {
     allies?: (string | LinkedItem)[];
     enemies?: (string | LinkedItem)[];
     alsoKnownAs?: string[];
-    birthYear?: string | number;
+    birthDate?: string;
+    birthYear?: string | number; // legacy field — display as birthDate fallback
     birthPlace?: string;
     age?: string | number;
 
@@ -223,7 +224,7 @@ export const ArticlePage = () => {
                             />
                         )}
 
-                        <InfoRow label={t('article.birth_year')} value={meta.birthYear} />
+                        <InfoRow label={t('article.birth_date')} value={meta.birthDate || (meta.birthYear ? String(meta.birthYear) : undefined)} />
                         <InfoRow label={t('article.age')} value={meta.age} />
                         <InfoRow label={t('article.birth_place')} value={meta.birthPlace} />
 

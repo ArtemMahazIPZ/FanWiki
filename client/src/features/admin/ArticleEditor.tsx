@@ -28,7 +28,8 @@ interface ArticleMetadata {
     allies?: LinkedItem[];
     enemies?: LinkedItem[];
     alsoKnownAs?: string[];
-    birthYear?: string | number;
+    birthDate?: string;
+    birthYear?: string | number; // kept for backward-compat with old data
     birthPlace?: string;
     age?: string | number;
 
@@ -49,6 +50,7 @@ interface EnData {
     quote: string;
     voiceActor: string;
     birthPlace: string;
+    birthDate: string;
     familyNames: string[];
     alliesNames: string[];
     enemiesNames: string[];
@@ -69,7 +71,7 @@ export const ArticleEditor = () => {
         category: 'Character',
         alignment: '',
         gameName: '',
-        languageCode: i18n.language
+        languageCode: 'uk'
     });
 
     const [metadata, setMetadata] = useState<ArticleMetadata>({
@@ -89,6 +91,7 @@ export const ArticleEditor = () => {
         quote: '',
         voiceActor: '',
         birthPlace: '',
+        birthDate: '',
         familyNames: [],
         alliesNames: [],
         enemiesNames: [],
@@ -129,7 +132,9 @@ export const ArticleEditor = () => {
 
     useEffect(() => {
         if (isEdit && id) {
-            api.get<Article>(`/Wiki/${id}?lang=${i18n.language}`).then(res => {
+            // Always load the article in its original (Ukrainian) language for the
+            // primary editing section, regardless of the current interface language.
+            api.get<Article>(`/Wiki/${id}?lang=uk`).then(res => {
                 const data = res.data;
                 setFormData({
                     title: data.title,
@@ -139,7 +144,7 @@ export const ArticleEditor = () => {
                     category: data.category,
                     alignment: data.alignment || '',
                     gameName: data.gameName || '',
-                    languageCode: i18n.language
+                    languageCode: data.languageCode  // use the actual DB language, not i18n.language
                 });
                 setExistingImage(data.imageUrl || null);
 
@@ -152,6 +157,8 @@ export const ArticleEditor = () => {
                             );
                         setMetadata({
                             ...parsed,
+                            // Migrate legacy birthYear → birthDate if needed
+                            birthDate: parsed.birthDate || (parsed.birthYear ? String(parsed.birthYear) : undefined),
                             family: normalizeLinked(parsed.family),
                             allies: normalizeLinked(parsed.allies),
                             enemies: normalizeLinked(parsed.enemies),
@@ -180,6 +187,7 @@ export const ArticleEditor = () => {
                         quote:       res.data.quote || '',
                         voiceActor:  (enMeta.voiceActor  as string) || '',
                         birthPlace:  (enMeta.birthPlace  as string) || '',
+                        birthDate:   (enMeta.birthDate   as string) || '',
                         familyNames: enFamily.map(x => x.name),
                         alliesNames: enAllies.map(x => x.name),
                         enemiesNames: enEnemies.map(x => x.name),
@@ -212,6 +220,7 @@ export const ArticleEditor = () => {
                 content: string;
                 voiceActor:  string | null;
                 birthPlace:  string | null;
+                birthDate:   string | null;
                 familyNames:  string[];
                 alliesNames:  string[];
                 enemiesNames: string[];
@@ -222,6 +231,7 @@ export const ArticleEditor = () => {
                 content:      uaContent,
                 voiceActor:   (metadata.voiceActor  as string) || null,
                 birthPlace:   (metadata.birthPlace  as string) || null,
+                birthDate:    (metadata.birthDate   as string) || null,
                 familyNames:  familyNames.length  > 0 ? familyNames  : null,
                 alliesNames:  alliesNames.length  > 0 ? alliesNames  : null,
                 enemiesNames: enemiesNames.length > 0 ? enemiesNames : null,
@@ -236,6 +246,7 @@ export const ArticleEditor = () => {
                 quote:        res.data.quote,
                 voiceActor:   res.data.voiceActor  || '',
                 birthPlace:   res.data.birthPlace  || '',
+                birthDate:    res.data.birthDate   || '',
                 familyNames:  res.data.familyNames  || [],
                 alliesNames:  res.data.alliesNames  || [],
                 enemiesNames: res.data.enemiesNames || [],
@@ -389,11 +400,15 @@ export const ArticleEditor = () => {
         if (cleanMetadata.allies) cleanMetadata.allies = (cleanMetadata.allies as LinkedItem[]).filter(x => x.name.trim() !== '');
         if (cleanMetadata.enemies) cleanMetadata.enemies = (cleanMetadata.enemies as LinkedItem[]).filter(x => x.name.trim() !== '');
         if (cleanMetadata.alsoKnownAs) cleanMetadata.alsoKnownAs = (cleanMetadata.alsoKnownAs as string[]).filter(x => x.trim() !== '');
+        // Remove legacy birthYear to avoid confusion — birthDate is the canonical field
+        delete cleanMetadata.birthYear;
 
         data.append('Metadata', JSON.stringify(cleanMetadata));
         if (file) data.append('Image', file);
 
-        if (enData.title && enData.content && !formData.languageCode.startsWith('en')) {
+        // Include the English translation whenever EN data is present,
+        // regardless of the current interface language.
+        if (enData.title && enData.content) {
             data.append('TitleEn', enData.title);
             data.append('ContentEn', enData.content);
             if (enData.quote) data.append('QuoteEn', enData.quote);
@@ -402,6 +417,7 @@ export const ArticleEditor = () => {
             const enMetadata = { ...cleanMetadata };
             if (enData.voiceActor)  enMetadata.voiceActor  = enData.voiceActor;
             if (enData.birthPlace)  enMetadata.birthPlace  = enData.birthPlace;
+            if (enData.birthDate)   enMetadata.birthDate   = enData.birthDate;
             if (enData.familyNames.length > 0) {
                 const src = (cleanMetadata.family as LinkedItem[]) || [];
                 enMetadata.family = enData.familyNames.map((name, i) => ({ name, slug: src[i]?.slug }));
@@ -484,10 +500,13 @@ export const ArticleEditor = () => {
                         </div>
 
                         <div>
-                            <label className="text-xs text-slate-400 uppercase font-bold">{t('article.birth_year')}</label>
-                            <input type="number" placeholder="e.g. 1985"
+                            <label className="text-xs text-slate-400 uppercase font-bold">{t('article.birth_date')}</label>
+                            <input
+                                placeholder={t('editor.birth_date_placeholder')}
                                 className="w-full bg-slate-950 p-2 rounded border border-slate-600 mt-1 outline-none focus:border-emerald-500"
-                                value={metadata.birthYear || ''} onChange={e => setMetadata({...metadata, birthYear: e.target.value})} />
+                                value={metadata.birthDate || ''}
+                                onChange={e => setMetadata({...metadata, birthDate: e.target.value})}
+                            />
                         </div>
                         <div>
                             <label className="text-xs text-slate-400 uppercase font-bold">{t('article.age')}</label>
@@ -712,6 +731,16 @@ export const ArticleEditor = () => {
                             </div>
 
                             <div>
+                                <label className="text-xs text-slate-400 uppercase font-bold">{t('article.birth_date')} (EN)</label>
+                                <input
+                                    className="w-full bg-slate-900 p-2 rounded border border-slate-600 mt-1 text-sm focus:border-cyan-500 outline-none"
+                                    value={enData.birthDate}
+                                    placeholder="e.g. June 25, 1885"
+                                    onChange={e => setEnData(prev => ({ ...prev, birthDate: e.target.value }))}
+                                />
+                            </div>
+
+                            <div className="col-span-full">
                                 <label className="text-xs text-slate-400 uppercase font-bold">{t('article.birth_place')} (EN)</label>
                                 <input
                                     className="w-full bg-slate-900 p-2 rounded border border-slate-600 mt-1 text-sm focus:border-cyan-500 outline-none"

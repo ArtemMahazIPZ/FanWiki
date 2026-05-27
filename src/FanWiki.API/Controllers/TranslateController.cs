@@ -48,6 +48,7 @@ public class TranslateController(ITranslationService translationService) : Contr
             var content    = await TranslateOrEmpty(dto.Content, sl, tl, ct);
             var voiceActor = await TranslateOrNull(dto.VoiceActor, sl, tl, ct);
             var birthPlace = await TranslateOrNull(dto.BirthPlace, sl, tl, ct);
+            var birthDate  = await TranslateOrNull(dto.BirthDate, sl, tl, ct);
             var family     = await TranslateArray(dto.FamilyNames, sl, tl, ct);
             var allies     = await TranslateArray(dto.AlliesNames, sl, tl, ct);
             var enemies    = await TranslateArray(dto.EnemiesNames, sl, tl, ct);
@@ -59,6 +60,7 @@ public class TranslateController(ITranslationService translationService) : Contr
                 content,
                 voiceActor,
                 birthPlace,
+                birthDate,
                 family,
                 allies,
                 enemies,
