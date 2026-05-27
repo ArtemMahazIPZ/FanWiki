@@ -66,13 +66,11 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddScoped<IWikiService, WikiService>();
 builder.Services.AddSingleton<IImageService, CloudinaryImageService>();
-builder.Services.AddHttpClient("GoogleTranslate", client =>
+builder.Services.AddHttpClient("DeepL", client =>
 {
-    client.DefaultRequestHeaders.UserAgent.ParseAdd(
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36");
-    client.Timeout = TimeSpan.FromSeconds(60);
+    client.Timeout = TimeSpan.FromSeconds(30);
 });
-builder.Services.AddScoped<ITranslationService, GoogleTranslationService>();
+builder.Services.AddScoped<ITranslationService, DeepLTranslationService>();
 
 builder.Services.AddSignalR();
 
