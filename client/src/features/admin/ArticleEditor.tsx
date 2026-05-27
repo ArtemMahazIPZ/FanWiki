@@ -46,7 +46,6 @@ interface ArticleMetadata {
 
 interface EnData {
     title: string;
-    content: string;
     quote: string;
     voiceActor: string;
     birthPlace: string;
@@ -56,6 +55,25 @@ interface EnData {
     enemiesNames: string[];
     alsoKnownAs: string[];
 }
+
+// Shared Tiptap extension list used by both the primary and English editors.
+const buildExtensions = () => [
+    StarterKit,
+    TextStyle,
+    FontSize,
+    CustomImage,
+    TextAlign.configure({ types: ['heading', 'paragraph', 'image'] }),
+    Link.configure({
+        openOnClick: false,
+        HTMLAttributes: { class: 'text-emerald-400 underline hover:text-emerald-300 cursor-pointer' },
+    }),
+];
+
+const editorBaseClass =
+    'prose prose-invert prose-sm sm:prose-base max-w-none focus:outline-none min-h-[300px] p-4 text-slate-300 leading-relaxed ' +
+    '[&>img]:rounded-xl [&>img]:border [&>img]:border-slate-700 [&>img]:inline-block ' +
+    '[&_figure]:my-4 [&_figure]:mx-auto [&_figure_img]:rounded-xl [&_figure_img]:border [&_figure_img]:border-slate-700 ' +
+    '[&_figcaption]:text-sm [&_figcaption]:text-slate-400 [&_figcaption]:text-center [&_figcaption]:mt-2 [&_figcaption]:italic';
 
 export const ArticleEditor = () => {
     const { id } = useParams();
@@ -85,9 +103,10 @@ export const ArticleEditor = () => {
     const [linkingField, setLinkingField] = useState<ListField | null>(null);
     const [linkingIndex, setLinkingIndex] = useState<number | null>(null);
 
+    // EnData holds all English translation fields EXCEPT content,
+    // which is managed directly by the enEditor Tiptap instance.
     const [enData, setEnData] = useState<EnData>({
         title: '',
-        content: '',
         quote: '',
         voiceActor: '',
         birthPlace: '',
@@ -103,33 +122,25 @@ export const ArticleEditor = () => {
     const [existingImage, setExistingImage] = useState<string | null>(null);
     const [file, setFile] = useState<File | null>(null);
 
+    // ── Primary (Ukrainian) editor ────────────────────────────────────────────
     const editor = useEditor({
-        extensions: [
-            StarterKit,
-            TextStyle,
-            FontSize,
-            CustomImage,
-            TextAlign.configure({
-                types: ['heading', 'paragraph', 'image'],
-            }),
-            Link.configure({
-                openOnClick: false,
-                HTMLAttributes: {
-                    class: 'text-emerald-400 underline hover:text-emerald-300 cursor-pointer',
-                },
-            }),
-        ],
-        content: formData.content,
-        editorProps: {
-            attributes: {
-                class: 'prose prose-invert prose-sm sm:prose-base max-w-none focus:outline-none min-h-[300px] p-4 text-slate-300 leading-relaxed [&>img]:rounded-xl [&>img]:border [&>img]:border-slate-700 [&>img]:inline-block [&_figure]:my-4 [&_figure]:mx-auto [&_figure_img]:rounded-xl [&_figure_img]:border [&_figure_img]:border-slate-700 [&_figcaption]:text-sm [&_figcaption]:text-slate-400 [&_figcaption]:text-center [&_figcaption]:mt-2 [&_figcaption]:italic',
-            },
-        },
+        extensions: buildExtensions(),
+        content: '',
+        editorProps: { attributes: { class: editorBaseClass } },
         onUpdate: ({ editor }) => {
             setFormData(prev => ({ ...prev, content: editor.getHTML() }));
         },
     });
 
+    // ── English WYSIWYG editor ────────────────────────────────────────────────
+    const enEditor = useEditor({
+        extensions: buildExtensions(),
+        content: '',
+        editorProps: { attributes: { class: editorBaseClass + ' min-h-[200px]' } },
+        // No need to sync to state — we read getHTML() at submit time.
+    });
+
+    // ── Load article data in edit mode ────────────────────────────────────────
     useEffect(() => {
         if (isEdit && id) {
             // Always load the article in its original (Ukrainian) language for the
@@ -144,7 +155,7 @@ export const ArticleEditor = () => {
                     category: data.category,
                     alignment: data.alignment || '',
                     gameName: data.gameName || '',
-                    languageCode: data.languageCode  // use the actual DB language, not i18n.language
+                    languageCode: data.languageCode
                 });
                 setExistingImage(data.imageUrl || null);
 
@@ -152,12 +163,9 @@ export const ArticleEditor = () => {
                     try {
                         const parsed = JSON.parse(data.metadata);
                         const normalizeLinked = (arr: any[]): LinkedItem[] =>
-                            (arr || []).map((x: any) =>
-                                typeof x === 'string' ? { name: x } : x
-                            );
+                            (arr || []).map((x: any) => typeof x === 'string' ? { name: x } : x);
                         setMetadata({
                             ...parsed,
-                            // Migrate legacy birthYear → birthDate if needed
                             birthDate: parsed.birthDate || (parsed.birthYear ? String(parsed.birthYear) : undefined),
                             family: normalizeLinked(parsed.family),
                             allies: normalizeLinked(parsed.allies),
@@ -169,58 +177,56 @@ export const ArticleEditor = () => {
                 editor?.commands.setContent(data.content);
             });
 
-            // Pre-load the English translation if one already exists
+            // Pre-load the English translation if one already exists.
             api.get<Article>(`/Wiki/${id}?lang=en`).then(res => {
-                if (res.data.languageCode === 'en') {
-                    let enMeta: ArticleMetadata = {};
-                    if (res.data.metadata) {
-                        try { enMeta = JSON.parse(res.data.metadata); } catch { /* ignore */ }
-                    }
-                    const normalizeLinked = (arr: any[]): LinkedItem[] =>
-                        (arr || []).map((x: any) => typeof x === 'string' ? { name: x } : x);
-                    const enFamily  = normalizeLinked((enMeta.family  as any[]) || []);
-                    const enAllies  = normalizeLinked((enMeta.allies  as any[]) || []);
-                    const enEnemies = normalizeLinked((enMeta.enemies as any[]) || []);
-                    setEnData({
-                        title:       res.data.title,
-                        content:     res.data.content,
-                        quote:       res.data.quote || '',
-                        voiceActor:  (enMeta.voiceActor  as string) || '',
-                        birthPlace:  (enMeta.birthPlace  as string) || '',
-                        birthDate:   (enMeta.birthDate   as string) || '',
-                        familyNames: enFamily.map(x => x.name),
-                        alliesNames: enAllies.map(x => x.name),
-                        enemiesNames: enEnemies.map(x => x.name),
-                        alsoKnownAs: (enMeta.alsoKnownAs as string[]) || []
-                    });
+                if (res.data.languageCode !== 'en') return;
+
+                let enMeta: ArticleMetadata = {};
+                if (res.data.metadata) {
+                    try { enMeta = JSON.parse(res.data.metadata); } catch { /* ignore */ }
                 }
+                const normalizeLinked = (arr: any[]): LinkedItem[] =>
+                    (arr || []).map((x: any) => typeof x === 'string' ? { name: x } : x);
+                const enFamily  = normalizeLinked((enMeta.family  as any[]) || []);
+                const enAllies  = normalizeLinked((enMeta.allies  as any[]) || []);
+                const enEnemies = normalizeLinked((enMeta.enemies as any[]) || []);
+
+                setEnData({
+                    title:        res.data.title,
+                    quote:        res.data.quote || '',
+                    voiceActor:   (enMeta.voiceActor as string) || '',
+                    birthPlace:   (enMeta.birthPlace as string) || '',
+                    birthDate:    (enMeta.birthDate  as string) || '',
+                    familyNames:  enFamily.map(x => x.name),
+                    alliesNames:  enAllies.map(x => x.name),
+                    enemiesNames: enEnemies.map(x => x.name),
+                    alsoKnownAs:  (enMeta.alsoKnownAs as string[]) || []
+                });
+                // Load the translated HTML directly into the English editor.
+                enEditor?.commands.setContent(res.data.content);
             }).catch(() => { /* no English translation yet */ });
         }
-    }, [id, isEdit, editor, i18n.language]);
+    }, [id, isEdit, editor, enEditor, i18n.language]);
 
-    const stripHtml = (html: string): string => {
-        const div = document.createElement('div');
-        div.innerHTML = html;
-        return div.textContent || div.innerText || '';
-    };
-
+    // ── Auto-translate ────────────────────────────────────────────────────────
     const handleAutoTranslate = async () => {
         setTranslateError(null);
         setIsTranslating(true);
         try {
-            const uaContent   = stripHtml(editor?.getHTML() || formData.content);
+            // Send the full HTML so the backend can preserve formatting tags.
+            const htmlContent  = editor?.getHTML() || formData.content;
             const familyNames  = ((metadata.family  as LinkedItem[]) || []).map(x => x.name).filter(Boolean);
             const alliesNames  = ((metadata.allies  as LinkedItem[]) || []).map(x => x.name).filter(Boolean);
             const enemiesNames = ((metadata.enemies as LinkedItem[]) || []).map(x => x.name).filter(Boolean);
             const alsoKnownAs  = ((metadata.alsoKnownAs as string[]) || []).filter(Boolean);
 
             const res = await api.post<{
-                title: string;
-                quote: string;
-                content: string;
-                voiceActor:  string | null;
-                birthPlace:  string | null;
-                birthDate:   string | null;
+                title:        string;
+                quote:        string;
+                content:      string;
+                voiceActor:   string | null;
+                birthPlace:   string | null;
+                birthDate:    string | null;
                 familyNames:  string[];
                 alliesNames:  string[];
                 enemiesNames: string[];
@@ -228,10 +234,10 @@ export const ArticleEditor = () => {
             }>('/Translate/batch', {
                 title:        formData.title,
                 quote:        formData.quote,
-                content:      uaContent,
-                voiceActor:   (metadata.voiceActor  as string) || null,
-                birthPlace:   (metadata.birthPlace  as string) || null,
-                birthDate:    (metadata.birthDate   as string) || null,
+                content:      htmlContent,
+                voiceActor:   (metadata.voiceActor as string) || null,
+                birthPlace:   (metadata.birthPlace as string) || null,
+                birthDate:    (metadata.birthDate  as string) || null,
                 familyNames:  familyNames.length  > 0 ? familyNames  : null,
                 alliesNames:  alliesNames.length  > 0 ? alliesNames  : null,
                 enemiesNames: enemiesNames.length > 0 ? enemiesNames : null,
@@ -240,9 +246,11 @@ export const ArticleEditor = () => {
                 targetLang: 'en'
             });
 
+            // Load translated HTML into the English Tiptap editor.
+            enEditor?.commands.setContent(res.data.content);
+
             setEnData({
                 title:        res.data.title,
-                content:      res.data.content,
                 quote:        res.data.quote,
                 voiceActor:   res.data.voiceActor  || '',
                 birthPlace:   res.data.birthPlace  || '',
@@ -268,20 +276,14 @@ export const ArticleEditor = () => {
         }
     };
 
+    // ── Metadata / list helpers ───────────────────────────────────────────────
     const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const newCategory = e.target.value;
         setFormData({ ...formData, category: newCategory });
 
         let defaults: ArticleMetadata = {};
         if (newCategory === 'Character') {
-            defaults = {
-                status: 'Alive',
-                gender: 'Unknown',
-                family: [],
-                allies: [],
-                enemies: [],
-                alsoKnownAs: []
-            };
+            defaults = { status: 'Alive', gender: 'Unknown', family: [], allies: [], enemies: [], alsoKnownAs: [] };
         }
         setMetadata(defaults);
     };
@@ -300,24 +302,20 @@ export const ArticleEditor = () => {
 
     const addListItem = (field: ListField) => {
         if (field === 'alsoKnownAs') {
-            const list = [...((metadata.alsoKnownAs as string[]) || [])];
-            list.push('');
+            const list = [...((metadata.alsoKnownAs as string[]) || [])]; list.push('');
             setMetadata({ ...metadata, alsoKnownAs: list });
         } else {
-            const list = [...((metadata[field] as LinkedItem[]) || [])];
-            list.push({ name: '' });
+            const list = [...((metadata[field] as LinkedItem[]) || [])]; list.push({ name: '' });
             setMetadata({ ...metadata, [field]: list });
         }
     };
 
     const removeListItem = (field: ListField, index: number) => {
         if (field === 'alsoKnownAs') {
-            const list = [...((metadata.alsoKnownAs as string[]) || [])];
-            list.splice(index, 1);
+            const list = [...((metadata.alsoKnownAs as string[]) || [])]; list.splice(index, 1);
             setMetadata({ ...metadata, alsoKnownAs: list });
         } else {
-            const list = [...((metadata[field] as LinkedItem[]) || [])];
-            list.splice(index, 1);
+            const list = [...((metadata[field] as LinkedItem[]) || [])]; list.splice(index, 1);
             setMetadata({ ...metadata, [field]: list });
         }
     };
@@ -329,11 +327,8 @@ export const ArticleEditor = () => {
             <div className="col-span-1 md:col-span-2 bg-slate-950/50 p-3 rounded border border-slate-700">
                 <label className="text-xs text-slate-400 uppercase font-bold flex justify-between items-center mb-2">
                     {label}
-                    <button
-                        type="button"
-                        onClick={() => addListItem(field)}
-                        className="text-emerald-400 hover:text-emerald-300 text-xs px-2 py-1 bg-emerald-900/30 rounded"
-                    >
+                    <button type="button" onClick={() => addListItem(field)}
+                        className="text-emerald-400 hover:text-emerald-300 text-xs px-2 py-1 bg-emerald-900/30 rounded">
                         {t('editor.add')}
                     </button>
                 </label>
@@ -345,27 +340,18 @@ export const ArticleEditor = () => {
                             <div key={index} className="flex gap-2 items-center">
                                 <input
                                     className="flex-1 bg-slate-900 p-2 rounded border border-slate-600 text-sm focus:border-emerald-500 outline-none"
-                                    value={nameVal}
-                                    placeholder={`${label} #${index + 1}`}
+                                    value={nameVal} placeholder={`${label} #${index + 1}`}
                                     onChange={(e) => handleListChange(field, index, e.target.value)}
                                 />
                                 {isLinked && (
-                                    <button
-                                        type="button"
-                                        title="Link to article"
+                                    <button type="button" title="Link to article"
                                         onClick={() => { setLinkingField(field); setLinkingIndex(index); }}
-                                        className={`px-2 py-1 rounded text-xs border transition ${slugVal ? 'bg-emerald-900/40 border-emerald-700 text-emerald-400' : 'border-slate-600 text-slate-500 hover:border-emerald-600 hover:text-emerald-400'}`}
-                                    >
+                                        className={`px-2 py-1 rounded text-xs border transition ${slugVal ? 'bg-emerald-900/40 border-emerald-700 text-emerald-400' : 'border-slate-600 text-slate-500 hover:border-emerald-600 hover:text-emerald-400'}`}>
                                         {slugVal ? '🔗' : '⛓'}
                                     </button>
                                 )}
-                                <button
-                                    type="button"
-                                    onClick={() => removeListItem(field, index)}
-                                    className="text-red-400 hover:text-red-300 px-2"
-                                >
-                                    ✕
-                                </button>
+                                <button type="button" onClick={() => removeListItem(field, index)}
+                                    className="text-red-400 hover:text-red-300 px-2">✕</button>
                             </div>
                         );
                     })}
@@ -375,6 +361,7 @@ export const ArticleEditor = () => {
         );
     };
 
+    // ── Submit ────────────────────────────────────────────────────────────────
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -384,40 +371,34 @@ export const ArticleEditor = () => {
         data.append('Quote', formData.quote);
         data.append('Content', editor?.getHTML() || formData.content);
         data.append('Category', formData.category);
-
-        if (formData.gameName) {
-            data.append('GameName', formData.gameName);
-        }
-
-        if (formData.alignment) {
-            data.append('Alignment', formData.alignment);
-        }
-
+        if (formData.gameName)  data.append('GameName', formData.gameName);
+        if (formData.alignment) data.append('Alignment', formData.alignment);
         data.append('LanguageCode', formData.languageCode);
 
         const cleanMetadata = { ...metadata };
-        if (cleanMetadata.family) cleanMetadata.family = (cleanMetadata.family as LinkedItem[]).filter(x => x.name.trim() !== '');
-        if (cleanMetadata.allies) cleanMetadata.allies = (cleanMetadata.allies as LinkedItem[]).filter(x => x.name.trim() !== '');
-        if (cleanMetadata.enemies) cleanMetadata.enemies = (cleanMetadata.enemies as LinkedItem[]).filter(x => x.name.trim() !== '');
+        if (cleanMetadata.family)     cleanMetadata.family     = (cleanMetadata.family     as LinkedItem[]).filter(x => x.name.trim() !== '');
+        if (cleanMetadata.allies)     cleanMetadata.allies     = (cleanMetadata.allies     as LinkedItem[]).filter(x => x.name.trim() !== '');
+        if (cleanMetadata.enemies)    cleanMetadata.enemies    = (cleanMetadata.enemies    as LinkedItem[]).filter(x => x.name.trim() !== '');
         if (cleanMetadata.alsoKnownAs) cleanMetadata.alsoKnownAs = (cleanMetadata.alsoKnownAs as string[]).filter(x => x.trim() !== '');
-        // Remove legacy birthYear to avoid confusion — birthDate is the canonical field
-        delete cleanMetadata.birthYear;
+        delete cleanMetadata.birthYear; // removed: birthDate is canonical now
 
         data.append('Metadata', JSON.stringify(cleanMetadata));
         if (file) data.append('Image', file);
 
         // Include the English translation whenever EN data is present,
         // regardless of the current interface language.
-        if (enData.title && enData.content) {
+        const enContent = enEditor?.getHTML() || '';
+        const hasEnContent = enData.title.trim() !== '' && enContent.replace(/<[^>]*>/g, '').trim() !== '';
+
+        if (hasEnContent) {
             data.append('TitleEn', enData.title);
-            data.append('ContentEn', enData.content);
+            data.append('ContentEn', enContent);
             if (enData.quote) data.append('QuoteEn', enData.quote);
 
-            // Build English metadata: copy non-translatable fields, override with translated ones
             const enMetadata = { ...cleanMetadata };
-            if (enData.voiceActor)  enMetadata.voiceActor  = enData.voiceActor;
-            if (enData.birthPlace)  enMetadata.birthPlace  = enData.birthPlace;
-            if (enData.birthDate)   enMetadata.birthDate   = enData.birthDate;
+            if (enData.voiceActor) enMetadata.voiceActor = enData.voiceActor;
+            if (enData.birthPlace) enMetadata.birthPlace = enData.birthPlace;
+            if (enData.birthDate)  enMetadata.birthDate  = enData.birthDate;
             if (enData.familyNames.length > 0) {
                 const src = (cleanMetadata.family as LinkedItem[]) || [];
                 enMetadata.family = enData.familyNames.map((name, i) => ({ name, slug: src[i]?.slug }));
@@ -430,9 +411,8 @@ export const ArticleEditor = () => {
                 const src = (cleanMetadata.enemies as LinkedItem[]) || [];
                 enMetadata.enemies = enData.enemiesNames.map((name, i) => ({ name, slug: src[i]?.slug }));
             }
-            if (enData.alsoKnownAs.length > 0) {
-                enMetadata.alsoKnownAs = enData.alsoKnownAs;
-            }
+            if (enData.alsoKnownAs.length > 0) enMetadata.alsoKnownAs = enData.alsoKnownAs;
+
             data.append('MetadataEn', JSON.stringify(enMetadata));
         }
 
@@ -446,6 +426,7 @@ export const ArticleEditor = () => {
         }
     };
 
+    // ── Metadata fields renderer ──────────────────────────────────────────────
     const renderMetadataInputs = () => {
         switch (formData.category) {
             case 'Character':
@@ -453,60 +434,41 @@ export const ArticleEditor = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-800 p-4 rounded border border-slate-700 animate-in fade-in">
                         <div>
                             <label className="text-xs text-slate-400 uppercase font-bold">{t('article.status')}</label>
-                            <select
-                                className="w-full bg-slate-950 p-2 rounded border border-slate-600 mt-1 outline-none focus:border-emerald-500"
-                                value={metadata.status || 'Alive'}
-                                onChange={e => setMetadata({...metadata, status: e.target.value})}
-                            >
+                            <select className="w-full bg-slate-950 p-2 rounded border border-slate-600 mt-1 outline-none focus:border-emerald-500"
+                                value={metadata.status || 'Alive'} onChange={e => setMetadata({...metadata, status: e.target.value})}>
                                 <option value="Alive">{t('meta_values.Alive')}</option>
                                 <option value="Deceased">{t('meta_values.Deceased')}</option>
                                 <option value="Unknown">{t('meta_values.Unknown')}</option>
                             </select>
                         </div>
-
                         <div>
                             <label className="text-xs text-slate-400 uppercase font-bold">{t('article.gender')}</label>
-                            <select
-                                className="w-full bg-slate-950 p-2 rounded border border-slate-600 mt-1 outline-none focus:border-emerald-500"
-                                value={metadata.gender || 'Unknown'}
-                                onChange={e => setMetadata({...metadata, gender: e.target.value})}
-                            >
+                            <select className="w-full bg-slate-950 p-2 rounded border border-slate-600 mt-1 outline-none focus:border-emerald-500"
+                                value={metadata.gender || 'Unknown'} onChange={e => setMetadata({...metadata, gender: e.target.value})}>
                                 <option value="Male">{t('meta_values.Male')}</option>
                                 <option value="Female">{t('meta_values.Female')}</option>
                                 <option value="Unknown">{t('meta_values.Unknown')}</option>
                             </select>
                         </div>
-
                         {metadata.status === 'Deceased' && (
                             <div className="col-span-1 md:col-span-2 animate-in slide-in-from-top-2">
                                 <label className="text-xs text-red-400 uppercase font-bold">☠️ {t('article.cause_of_death')}</label>
-                                <input
-                                    placeholder={t('editor.cause_placeholder')}
+                                <input placeholder={t('editor.cause_placeholder')}
                                     className="w-full bg-slate-950 p-2 rounded border border-red-900/50 mt-1 outline-none focus:border-red-500"
-                                    value={metadata.causeOfDeath || ''}
-                                    onChange={e => setMetadata({...metadata, causeOfDeath: e.target.value})}
-                                />
+                                    value={metadata.causeOfDeath || ''} onChange={e => setMetadata({...metadata, causeOfDeath: e.target.value})} />
                             </div>
                         )}
-
                         <div className="col-span-1 md:col-span-2">
                             <label className="text-xs text-slate-400 uppercase font-bold">🎙️ {t('editor.voice_actor_label')}</label>
-                            <input
-                                placeholder={t('editor.voice_actor_placeholder')}
+                            <input placeholder={t('editor.voice_actor_placeholder')}
                                 className="w-full bg-slate-950 p-2 rounded border border-slate-600 mt-1 outline-none focus:border-emerald-500"
-                                value={metadata.voiceActor || ''}
-                                onChange={e => setMetadata({...metadata, voiceActor: e.target.value})}
-                            />
+                                value={metadata.voiceActor || ''} onChange={e => setMetadata({...metadata, voiceActor: e.target.value})} />
                         </div>
-
                         <div>
                             <label className="text-xs text-slate-400 uppercase font-bold">{t('article.birth_date')}</label>
-                            <input
-                                placeholder={t('editor.birth_date_placeholder')}
+                            <input placeholder={t('editor.birth_date_placeholder')}
                                 className="w-full bg-slate-950 p-2 rounded border border-slate-600 mt-1 outline-none focus:border-emerald-500"
-                                value={metadata.birthDate || ''}
-                                onChange={e => setMetadata({...metadata, birthDate: e.target.value})}
-                            />
+                                value={metadata.birthDate || ''} onChange={e => setMetadata({...metadata, birthDate: e.target.value})} />
                         </div>
                         <div>
                             <label className="text-xs text-slate-400 uppercase font-bold">{t('article.age')}</label>
@@ -520,63 +482,48 @@ export const ArticleEditor = () => {
                                 className="w-full bg-slate-950 p-2 rounded border border-slate-600 mt-1 outline-none focus:border-emerald-500"
                                 value={metadata.birthPlace || ''} onChange={e => setMetadata({...metadata, birthPlace: e.target.value})} />
                         </div>
-
-                        {renderListInput(t('article.family'), 'family')}
-                        {renderListInput(t('article.allies'), 'allies')}
-                        {renderListInput(t('article.enemies'), 'enemies')}
+                        {renderListInput(t('article.family'),        'family')}
+                        {renderListInput(t('article.allies'),        'allies')}
+                        {renderListInput(t('article.enemies'),       'enemies')}
                         {renderListInput(t('article.also_known_as'), 'alsoKnownAs')}
                     </div>
                 );
-
             case 'Weapon':
                 return (
-                    <div className="grid grid-cols-2 gap-4 bg-slate-800 p-4 rounded border border-slate-700 transition-all animate-in fade-in">
-                        <div>
-                            <label className="text-xs text-slate-400 uppercase font-bold">{t('article.damage')}</label>
+                    <div className="grid grid-cols-2 gap-4 bg-slate-800 p-4 rounded border border-slate-700 animate-in fade-in">
+                        <div><label className="text-xs text-slate-400 uppercase font-bold">{t('article.damage')}</label>
                             <input placeholder="0" type="number" className="w-full bg-slate-950 p-2 rounded border border-slate-600 mt-1 outline-none focus:border-emerald-500"
-                                   value={metadata.damage || ''} onChange={e => setMetadata({...metadata, damage: e.target.value})} />
-                        </div>
-                        <div>
-                            <label className="text-xs text-slate-400 uppercase font-bold">{t('article.year')}</label>
+                                value={metadata.damage || ''} onChange={e => setMetadata({...metadata, damage: e.target.value})} /></div>
+                        <div><label className="text-xs text-slate-400 uppercase font-bold">{t('article.year')}</label>
                             <input placeholder={t('article.year')} type="number" className="w-full bg-slate-950 p-2 rounded border border-slate-600 mt-1 outline-none focus:border-emerald-500"
-                                   value={metadata.year || ''} onChange={e => setMetadata({...metadata, year: e.target.value})} />
-                        </div>
-                        <div>
-                            <label className="text-xs text-slate-400 uppercase font-bold">{t('article.ammo')}</label>
+                                value={metadata.year || ''} onChange={e => setMetadata({...metadata, year: e.target.value})} /></div>
+                        <div><label className="text-xs text-slate-400 uppercase font-bold">{t('article.ammo')}</label>
                             <input placeholder={t('article.ammo')} type="number" className="w-full bg-slate-950 p-2 rounded border border-slate-600 mt-1 outline-none focus:border-emerald-500"
-                                   value={metadata.ammo || ''} onChange={e => setMetadata({...metadata, ammo: e.target.value})} />
-                        </div>
-                        <div>
-                            <label className="text-xs text-slate-400 uppercase font-bold">{t('article.fire_rate')}</label>
+                                value={metadata.ammo || ''} onChange={e => setMetadata({...metadata, ammo: e.target.value})} /></div>
+                        <div><label className="text-xs text-slate-400 uppercase font-bold">{t('article.fire_rate')}</label>
                             <input placeholder={t('editor.rate_of_fire')} type="number" className="w-full bg-slate-950 p-2 rounded border border-slate-600 mt-1 outline-none focus:border-emerald-500"
-                                   value={metadata.fireRate || ''} onChange={e => setMetadata({...metadata, fireRate: e.target.value})} />
-                        </div>
+                                value={metadata.fireRate || ''} onChange={e => setMetadata({...metadata, fireRate: e.target.value})} /></div>
                     </div>
                 );
             case 'Location':
                 return (
-                    <div className="grid grid-cols-2 gap-4 bg-slate-800 p-4 rounded border border-slate-700 transition-all animate-in fade-in">
-                        <div>
-                            <label className="text-xs text-slate-400 uppercase font-bold">{t('article.region')}</label>
+                    <div className="grid grid-cols-2 gap-4 bg-slate-800 p-4 rounded border border-slate-700 animate-in fade-in">
+                        <div><label className="text-xs text-slate-400 uppercase font-bold">{t('article.region')}</label>
                             <input placeholder={t('editor.region_placeholder')} className="w-full bg-slate-950 p-2 rounded border border-slate-600 mt-1 outline-none focus:border-emerald-500"
-                                   value={metadata.region || ''} onChange={e => setMetadata({...metadata, region: e.target.value})} />
-                        </div>
-                        <div>
-                            <label className="text-xs text-slate-400 uppercase font-bold">{t('article.population')}</label>
+                                value={metadata.region || ''} onChange={e => setMetadata({...metadata, region: e.target.value})} /></div>
+                        <div><label className="text-xs text-slate-400 uppercase font-bold">{t('article.population')}</label>
                             <input placeholder="0" type="number" className="w-full bg-slate-950 p-2 rounded border border-slate-600 mt-1 outline-none focus:border-emerald-500"
-                                   value={metadata.population || ''} onChange={e => setMetadata({...metadata, population: e.target.value})} />
-                        </div>
-                        <div>
-                            <label className="text-xs text-slate-400 uppercase font-bold">{t('article.founded')}</label>
+                                value={metadata.population || ''} onChange={e => setMetadata({...metadata, population: e.target.value})} /></div>
+                        <div><label className="text-xs text-slate-400 uppercase font-bold">{t('article.founded')}</label>
                             <input placeholder={t('article.year')} type="number" className="w-full bg-slate-950 p-2 rounded border border-slate-600 mt-1 outline-none focus:border-emerald-500"
-                                   value={metadata.founded || ''} onChange={e => setMetadata({...metadata, founded: e.target.value})} />
-                        </div>
+                                value={metadata.founded || ''} onChange={e => setMetadata({...metadata, founded: e.target.value})} /></div>
                     </div>
                 );
             default: return null;
         }
     };
 
+    // ── Render ────────────────────────────────────────────────────────────────
     return (
         <div className="max-w-5xl mx-auto p-6 mt-4 pb-20">
             <h1 className="text-3xl font-bold mb-8 text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-500">
@@ -584,53 +531,48 @@ export const ArticleEditor = () => {
             </h1>
 
             <form onSubmit={handleSubmit} className="space-y-8">
+                {/* ── Primary language section ── */}
                 <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-lg space-y-6">
-                    <h2 className="text-xl font-bold text-slate-200 mb-4 flex items-center gap-2">📕 {t('editor.info_section')} ({formData.languageCode.toUpperCase()})</h2>
+                    <h2 className="text-xl font-bold text-slate-200 mb-4 flex items-center gap-2">
+                        📕 {t('editor.info_section')} ({formData.languageCode.toUpperCase()})
+                    </h2>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label className="block text-xs font-bold text-slate-400 uppercase mb-2">{t('editor.label_title')}</label>
                             <input required className="bg-slate-950 p-3 rounded border border-slate-700 w-full text-white font-bold text-lg"
-                                   value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} />
+                                value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} />
                         </div>
                         <div>
                             <label className="block text-xs font-bold text-slate-400 uppercase mb-2">{t('editor.label_slug')}</label>
                             <input required className="bg-slate-950 p-3 rounded border border-slate-700 w-full text-emerald-400 font-mono text-sm"
-                                   value={formData.slug} onChange={e => setFormData({...formData, slug: e.target.value})} />
+                                value={formData.slug} onChange={e => setFormData({...formData, slug: e.target.value})} />
                         </div>
                     </div>
 
                     <div>
                         <label className="block text-xs font-bold text-slate-400 uppercase mb-2">{t('editor.label_quote')}</label>
-                        <textarea
-                            rows={2}
-                            placeholder={t('editor.quote_placeholder')}
+                        <textarea rows={2} placeholder={t('editor.quote_placeholder')}
                             className="bg-slate-950 p-3 rounded border border-slate-700 w-full text-emerald-200 italic focus:border-emerald-500 outline-none resize-none"
-                            value={formData.quote}
-                            onChange={e => setFormData({...formData, quote: e.target.value})}
-                        />
+                            value={formData.quote} onChange={e => setFormData({...formData, quote: e.target.value})} />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label className="block text-xs font-bold text-slate-400 uppercase mb-2">{t('article.category')}</label>
                             <select className="bg-slate-950 p-3 rounded border border-slate-700 w-full text-white"
-                                    value={formData.category} onChange={handleCategoryChange}>
+                                value={formData.category} onChange={handleCategoryChange}>
                                 <option value="Character">{t('categories.Character')}</option>
                                 <option value="Weapon">{t('categories.Weapon')}</option>
                                 <option value="Location">{t('categories.Location')}</option>
                                 <option value="Event">{t('categories.Event')}</option>
                             </select>
                         </div>
-
                         {formData.category === 'Character' && (
                             <div className="animate-in fade-in slide-in-from-left-2">
                                 <label className="block text-xs font-bold text-slate-400 uppercase mb-2">{t('editor.label_alignment')}</label>
-                                <select
-                                    className="bg-slate-950 p-3 rounded border border-slate-700 w-full text-white focus:border-emerald-500"
-                                    value={formData.alignment}
-                                    onChange={e => setFormData({...formData, alignment: e.target.value})}
-                                >
+                                <select className="bg-slate-950 p-3 rounded border border-slate-700 w-full text-white focus:border-emerald-500"
+                                    value={formData.alignment} onChange={e => setFormData({...formData, alignment: e.target.value})}>
                                     <option value="">{t('editor.alignment_none')}</option>
                                     <option value="Positive">😇 {t('editor.alignment_positive')}</option>
                                     <option value="Negative">😈 {t('editor.alignment_negative')}</option>
@@ -641,17 +583,15 @@ export const ArticleEditor = () => {
 
                     <div>
                         <label className="block text-xs font-bold text-slate-400 uppercase mb-2">{t('article.game')}</label>
-                        <input
-                            placeholder={t('article.game_placeholder')}
+                        <input placeholder={t('article.game_placeholder')}
                             className="bg-slate-950 p-3 rounded border border-slate-700 w-full text-white focus:border-emerald-500 outline-none"
-                            value={formData.gameName}
-                            onChange={e => setFormData({...formData, gameName: e.target.value})}
-                        />
+                            value={formData.gameName} onChange={e => setFormData({...formData, gameName: e.target.value})} />
                     </div>
 
                     {renderMetadataInputs()}
                 </div>
 
+                {/* ── Ukrainian content editor ── */}
                 <div className="bg-slate-900 rounded-xl border border-slate-800 shadow-lg">
                     <div className="p-4 border-b border-slate-800 bg-slate-950/50 rounded-t-xl">
                         <label className="block text-xs font-bold text-slate-400 uppercase">{t('editor.label_content')}</label>
@@ -662,22 +602,16 @@ export const ArticleEditor = () => {
 
                 {/* ── English Translation Section ── */}
                 <div className="bg-slate-900 p-6 rounded-xl border border-slate-700 shadow-lg space-y-5">
-                    {/* Sticky header row with the Auto-Translate button */}
+                    {/* Sticky header with Auto-Translate button */}
                     <div className="sticky top-4 z-50 bg-slate-900/95 backdrop-blur-sm flex items-center justify-between py-2 -mx-1 px-1 rounded-lg">
                         <h2 className="text-xl font-bold text-slate-200 flex items-center gap-2">
                             🌐 {t('editor.translation_en_section')}
                         </h2>
-                        <button
-                            type="button"
-                            onClick={handleAutoTranslate}
+                        <button type="button" onClick={handleAutoTranslate}
                             disabled={isTranslating || !formData.title || !(editor?.getText() || formData.content)}
-                            className="flex items-center gap-2 bg-cyan-700 hover:bg-cyan-600 disabled:opacity-50 disabled:cursor-not-allowed px-5 py-2 rounded-lg font-semibold text-white text-sm transition shadow-md shadow-cyan-900/30"
-                        >
+                            className="flex items-center gap-2 bg-cyan-700 hover:bg-cyan-600 disabled:opacity-50 disabled:cursor-not-allowed px-5 py-2 rounded-lg font-semibold text-white text-sm transition shadow-md shadow-cyan-900/30">
                             {isTranslating ? (
-                                <>
-                                    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                                    {t('editor.translating')}
-                                </>
+                                <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />{t('editor.translating')}</>
                             ) : (
                                 <>✨ {t('editor.auto_translate')}</>
                             )}
@@ -685,142 +619,86 @@ export const ArticleEditor = () => {
                     </div>
 
                     {translateError && (
-                        <p className="text-red-400 text-sm bg-red-950/40 border border-red-800 px-4 py-2 rounded">
-                            {translateError}
-                        </p>
+                        <p className="text-red-400 text-sm bg-red-950/40 border border-red-800 px-4 py-2 rounded">{translateError}</p>
                     )}
 
                     <div>
-                        <label className="block text-xs font-bold text-slate-400 uppercase mb-2">
-                            {t('editor.label_title_en')}
-                        </label>
-                        <input
-                            className="bg-slate-950 p-3 rounded border border-slate-700 w-full text-white font-bold text-lg focus:border-cyan-500 outline-none"
-                            value={enData.title}
-                            placeholder="English title..."
-                            onChange={e => setEnData(prev => ({ ...prev, title: e.target.value }))}
-                        />
+                        <label className="block text-xs font-bold text-slate-400 uppercase mb-2">{t('editor.label_title_en')}</label>
+                        <input className="bg-slate-950 p-3 rounded border border-slate-700 w-full text-white font-bold text-lg focus:border-cyan-500 outline-none"
+                            value={enData.title} placeholder="English title..."
+                            onChange={e => setEnData(prev => ({ ...prev, title: e.target.value }))} />
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-slate-400 uppercase mb-2">
-                            {t('editor.label_quote_en')}
-                        </label>
-                        <textarea
-                            rows={2}
+                        <label className="block text-xs font-bold text-slate-400 uppercase mb-2">{t('editor.label_quote_en')}</label>
+                        <textarea rows={2}
                             className="bg-slate-950 p-3 rounded border border-slate-700 w-full text-cyan-200 italic focus:border-cyan-500 outline-none resize-none"
-                            value={enData.quote}
-                            placeholder="English quote..."
-                            onChange={e => setEnData(prev => ({ ...prev, quote: e.target.value }))}
-                        />
+                            value={enData.quote} placeholder="English quote..."
+                            onChange={e => setEnData(prev => ({ ...prev, quote: e.target.value }))} />
                     </div>
 
-                    {/* Character metadata fields for English */}
+                    {/* Character metadata for English */}
                     {formData.category === 'Character' && (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-950/50 p-4 rounded border border-slate-700">
                             <p className="col-span-full text-xs font-bold text-slate-400 uppercase">Character Fields (EN)</p>
-
                             <div>
                                 <label className="text-xs text-slate-400 uppercase font-bold">🎙️ {t('editor.voice_actor_label')} (EN)</label>
-                                <input
-                                    className="w-full bg-slate-900 p-2 rounded border border-slate-600 mt-1 text-sm focus:border-cyan-500 outline-none"
-                                    value={enData.voiceActor}
-                                    placeholder="English voice actor..."
-                                    onChange={e => setEnData(prev => ({ ...prev, voiceActor: e.target.value }))}
-                                />
+                                <input className="w-full bg-slate-900 p-2 rounded border border-slate-600 mt-1 text-sm focus:border-cyan-500 outline-none"
+                                    value={enData.voiceActor} placeholder="English voice actor..."
+                                    onChange={e => setEnData(prev => ({ ...prev, voiceActor: e.target.value }))} />
                             </div>
-
                             <div>
                                 <label className="text-xs text-slate-400 uppercase font-bold">{t('article.birth_date')} (EN)</label>
-                                <input
-                                    className="w-full bg-slate-900 p-2 rounded border border-slate-600 mt-1 text-sm focus:border-cyan-500 outline-none"
-                                    value={enData.birthDate}
-                                    placeholder="e.g. June 25, 1885"
-                                    onChange={e => setEnData(prev => ({ ...prev, birthDate: e.target.value }))}
-                                />
+                                <input className="w-full bg-slate-900 p-2 rounded border border-slate-600 mt-1 text-sm focus:border-cyan-500 outline-none"
+                                    value={enData.birthDate} placeholder="e.g. June 25, 1885"
+                                    onChange={e => setEnData(prev => ({ ...prev, birthDate: e.target.value }))} />
                             </div>
-
                             <div className="col-span-full">
                                 <label className="text-xs text-slate-400 uppercase font-bold">{t('article.birth_place')} (EN)</label>
-                                <input
-                                    className="w-full bg-slate-900 p-2 rounded border border-slate-600 mt-1 text-sm focus:border-cyan-500 outline-none"
-                                    value={enData.birthPlace}
-                                    placeholder="English birth place..."
-                                    onChange={e => setEnData(prev => ({ ...prev, birthPlace: e.target.value }))}
-                                />
+                                <input className="w-full bg-slate-900 p-2 rounded border border-slate-600 mt-1 text-sm focus:border-cyan-500 outline-none"
+                                    value={enData.birthPlace} placeholder="English birth place..."
+                                    onChange={e => setEnData(prev => ({ ...prev, birthPlace: e.target.value }))} />
                             </div>
-
                             {enData.familyNames.length > 0 && (
                                 <div className="col-span-full">
                                     <label className="text-xs text-slate-400 uppercase font-bold">{t('article.family')} (EN)</label>
                                     <div className="space-y-1 mt-1">
                                         {enData.familyNames.map((name, i) => (
-                                            <input key={i}
-                                                className="w-full bg-slate-900 p-2 rounded border border-slate-600 text-sm focus:border-cyan-500 outline-none"
-                                                value={name}
-                                                onChange={e => {
-                                                    const updated = [...enData.familyNames];
-                                                    updated[i] = e.target.value;
-                                                    setEnData(prev => ({ ...prev, familyNames: updated }));
-                                                }}
-                                            />
+                                            <input key={i} className="w-full bg-slate-900 p-2 rounded border border-slate-600 text-sm focus:border-cyan-500 outline-none"
+                                                value={name} onChange={e => { const u = [...enData.familyNames]; u[i] = e.target.value; setEnData(prev => ({ ...prev, familyNames: u })); }} />
                                         ))}
                                     </div>
                                 </div>
                             )}
-
                             {enData.alliesNames.length > 0 && (
                                 <div className="col-span-full">
                                     <label className="text-xs text-slate-400 uppercase font-bold">{t('article.allies')} (EN)</label>
                                     <div className="space-y-1 mt-1">
                                         {enData.alliesNames.map((name, i) => (
-                                            <input key={i}
-                                                className="w-full bg-slate-900 p-2 rounded border border-slate-600 text-sm focus:border-cyan-500 outline-none"
-                                                value={name}
-                                                onChange={e => {
-                                                    const updated = [...enData.alliesNames];
-                                                    updated[i] = e.target.value;
-                                                    setEnData(prev => ({ ...prev, alliesNames: updated }));
-                                                }}
-                                            />
+                                            <input key={i} className="w-full bg-slate-900 p-2 rounded border border-slate-600 text-sm focus:border-cyan-500 outline-none"
+                                                value={name} onChange={e => { const u = [...enData.alliesNames]; u[i] = e.target.value; setEnData(prev => ({ ...prev, alliesNames: u })); }} />
                                         ))}
                                     </div>
                                 </div>
                             )}
-
                             {enData.enemiesNames.length > 0 && (
                                 <div className="col-span-full">
                                     <label className="text-xs text-slate-400 uppercase font-bold">{t('article.enemies')} (EN)</label>
                                     <div className="space-y-1 mt-1">
                                         {enData.enemiesNames.map((name, i) => (
-                                            <input key={i}
-                                                className="w-full bg-slate-900 p-2 rounded border border-slate-600 text-sm focus:border-cyan-500 outline-none"
-                                                value={name}
-                                                onChange={e => {
-                                                    const updated = [...enData.enemiesNames];
-                                                    updated[i] = e.target.value;
-                                                    setEnData(prev => ({ ...prev, enemiesNames: updated }));
-                                                }}
-                                            />
+                                            <input key={i} className="w-full bg-slate-900 p-2 rounded border border-slate-600 text-sm focus:border-cyan-500 outline-none"
+                                                value={name} onChange={e => { const u = [...enData.enemiesNames]; u[i] = e.target.value; setEnData(prev => ({ ...prev, enemiesNames: u })); }} />
                                         ))}
                                     </div>
                                 </div>
                             )}
-
                             {enData.alsoKnownAs.length > 0 && (
                                 <div className="col-span-full">
                                     <label className="text-xs text-slate-400 uppercase font-bold">{t('article.also_known_as')} (EN)</label>
                                     <div className="space-y-1 mt-1">
                                         {enData.alsoKnownAs.map((name, i) => (
-                                            <input key={i}
-                                                className="w-full bg-slate-900 p-2 rounded border border-slate-600 text-sm focus:border-cyan-500 outline-none"
-                                                value={name}
-                                                onChange={e => {
-                                                    const updated = [...enData.alsoKnownAs];
-                                                    updated[i] = e.target.value;
-                                                    setEnData(prev => ({ ...prev, alsoKnownAs: updated }));
-                                                }}
-                                            />
+                                            <input key={i} className="w-full bg-slate-900 p-2 rounded border border-slate-600 text-sm focus:border-cyan-500 outline-none"
+                                                value={name} onChange={e => { const u = [...enData.alsoKnownAs]; u[i] = e.target.value; setEnData(prev => ({ ...prev, alsoKnownAs: u })); }} />
                                         ))}
                                     </div>
                                 </div>
@@ -828,29 +706,27 @@ export const ArticleEditor = () => {
                         </div>
                     )}
 
+                    {/* ── English WYSIWYG content editor ── */}
                     <div>
-                        <label className="block text-xs font-bold text-slate-400 uppercase mb-2">
-                            {t('editor.label_content_en')}
-                        </label>
-                        <textarea
-                            rows={12}
-                            className="bg-slate-950 p-3 rounded border border-slate-700 w-full text-slate-300 leading-relaxed focus:border-cyan-500 outline-none resize-y font-mono text-sm"
-                            value={enData.content}
-                            placeholder="English content..."
-                            onChange={e => setEnData(prev => ({ ...prev, content: e.target.value }))}
-                        />
+                        <label className="block text-xs font-bold text-slate-400 uppercase mb-2">{t('editor.label_content_en')}</label>
+                        <div className="bg-slate-900 rounded-xl border border-cyan-900/50 shadow-lg overflow-hidden">
+                            <EditorToolbar
+                                editor={enEditor}
+                                className="border-b border-slate-700 p-2 flex flex-wrap gap-1 bg-slate-950/80 items-center"
+                            />
+                            <EditorContent editor={enEditor} />
+                        </div>
                     </div>
                 </div>
 
+                {/* ── Image ── */}
                 <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-lg">
                     <h2 className="text-xl font-bold text-slate-200 mb-4 flex items-center gap-2">🖼️ {t('editor.label_image')}</h2>
-                    <div className="border-2 border-slate-700 border-dashed p-8 rounded-lg text-center hover:bg-slate-800/50 transition group cursor-pointer relative">
-                        <input type="file" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onChange={e => setFile(e.target.files?.[0] || null)} />
-                        <div className="space-y-2">
-                            <p className="text-lg font-medium text-slate-300">{t('editor.click_to_upload')}</p>
-                        </div>
+                    <div className="border-2 border-slate-700 border-dashed p-8 rounded-lg text-center hover:bg-slate-800/50 transition cursor-pointer relative">
+                        <input type="file" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            onChange={e => setFile(e.target.files?.[0] || null)} />
+                        <p className="text-lg font-medium text-slate-300">{t('editor.click_to_upload')}</p>
                     </div>
-
                     {(file || existingImage) && (
                         <div className="mt-6 p-4 bg-slate-950 rounded-lg border border-slate-800 flex gap-4 items-center animate-in fade-in">
                             {file ? (
@@ -867,12 +743,11 @@ export const ArticleEditor = () => {
                 </div>
             </form>
 
+            {/* ── Sticky save bar ── */}
             <div className="fixed bottom-0 left-0 right-0 z-30 bg-slate-950/90 backdrop-blur-md border-t border-slate-800 p-4">
                 <div className="max-w-5xl mx-auto flex justify-end">
-                    <button
-                        onClick={handleSubmit as any}
-                        className="bg-emerald-600 hover:bg-emerald-500 px-10 py-3 rounded-xl font-bold text-white transition shadow-lg shadow-emerald-900/30"
-                    >
+                    <button onClick={handleSubmit as any}
+                        className="bg-emerald-600 hover:bg-emerald-500 px-10 py-3 rounded-xl font-bold text-white transition shadow-lg shadow-emerald-900/30">
                         {t('editor.save')} ({formData.languageCode.toUpperCase()})
                     </button>
                 </div>

@@ -16,6 +16,8 @@ import { useTranslation } from 'react-i18next';
 
 interface EditorToolbarProps {
     editor: Editor | null;
+    /** Override the wrapper div's className. Defaults to the main sticky toolbar style. */
+    className?: string;
 }
 
 const MenuButton = ({ isActive, onClick, children, title }: any) => (
@@ -33,7 +35,7 @@ const MenuButton = ({ isActive, onClick, children, title }: any) => (
     </button>
 );
 
-export const EditorToolbar = ({ editor }: EditorToolbarProps) => {
+export const EditorToolbar = ({ editor, className }: EditorToolbarProps) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [showLinkModal, setShowLinkModal] = useState(false);
     const { t } = useTranslation();
@@ -91,7 +93,7 @@ export const EditorToolbar = ({ editor }: EditorToolbarProps) => {
     };
 
     return (
-        <div className="border-b border-slate-700 p-2 flex flex-wrap gap-1 bg-slate-900 sticky top-20 z-30 items-center shadow-[0_4px_12px_rgba(0,0,0,0.4)]">
+        <div className={className ?? "border-b border-slate-700 p-2 flex flex-wrap gap-1 bg-slate-900 sticky top-20 z-30 items-center shadow-[0_4px_12px_rgba(0,0,0,0.4)]"}>
 
             <input
                 type="file"
