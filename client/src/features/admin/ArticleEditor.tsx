@@ -50,6 +50,7 @@ interface EnData {
     voiceActor: string;
     birthPlace: string;
     birthDate: string;
+    causeOfDeath: string;
     familyNames: string[];
     alliesNames: string[];
     enemiesNames: string[];
@@ -111,6 +112,7 @@ export const ArticleEditor = () => {
         voiceActor: '',
         birthPlace: '',
         birthDate: '',
+        causeOfDeath: '',
         familyNames: [],
         alliesNames: [],
         enemiesNames: [],
@@ -194,9 +196,10 @@ export const ArticleEditor = () => {
                 setEnData({
                     title:        res.data.title,
                     quote:        res.data.quote || '',
-                    voiceActor:   (enMeta.voiceActor as string) || '',
-                    birthPlace:   (enMeta.birthPlace as string) || '',
-                    birthDate:    (enMeta.birthDate  as string) || '',
+                    voiceActor:   (enMeta.voiceActor   as string) || '',
+                    birthPlace:   (enMeta.birthPlace   as string) || '',
+                    birthDate:    (enMeta.birthDate    as string) || '',
+                    causeOfDeath: (enMeta.causeOfDeath as string) || '',
                     familyNames:  enFamily.map(x => x.name),
                     alliesNames:  enAllies.map(x => x.name),
                     enemiesNames: enEnemies.map(x => x.name),
@@ -227,6 +230,7 @@ export const ArticleEditor = () => {
                 voiceActor:   string | null;
                 birthPlace:   string | null;
                 birthDate:    string | null;
+                causeOfDeath: string | null;
                 familyNames:  string[];
                 alliesNames:  string[];
                 enemiesNames: string[];
@@ -235,9 +239,10 @@ export const ArticleEditor = () => {
                 title:        formData.title,
                 quote:        formData.quote,
                 content:      htmlContent,
-                voiceActor:   (metadata.voiceActor as string) || null,
-                birthPlace:   (metadata.birthPlace as string) || null,
-                birthDate:    (metadata.birthDate  as string) || null,
+                voiceActor:   (metadata.voiceActor   as string) || null,
+                birthPlace:   (metadata.birthPlace   as string) || null,
+                birthDate:    (metadata.birthDate    as string) || null,
+                causeOfDeath: (metadata.causeOfDeath as string) || null,
                 familyNames:  familyNames.length  > 0 ? familyNames  : null,
                 alliesNames:  alliesNames.length  > 0 ? alliesNames  : null,
                 enemiesNames: enemiesNames.length > 0 ? enemiesNames : null,
@@ -252,9 +257,10 @@ export const ArticleEditor = () => {
             setEnData({
                 title:        res.data.title,
                 quote:        res.data.quote,
-                voiceActor:   res.data.voiceActor  || '',
-                birthPlace:   res.data.birthPlace  || '',
-                birthDate:    res.data.birthDate   || '',
+                voiceActor:   res.data.voiceActor   || '',
+                birthPlace:   res.data.birthPlace   || '',
+                birthDate:    res.data.birthDate    || '',
+                causeOfDeath: res.data.causeOfDeath || '',
                 familyNames:  res.data.familyNames  || [],
                 alliesNames:  res.data.alliesNames  || [],
                 enemiesNames: res.data.enemiesNames || [],
@@ -396,9 +402,10 @@ export const ArticleEditor = () => {
             if (enData.quote) data.append('QuoteEn', enData.quote);
 
             const enMetadata = { ...cleanMetadata };
-            if (enData.voiceActor) enMetadata.voiceActor = enData.voiceActor;
-            if (enData.birthPlace) enMetadata.birthPlace = enData.birthPlace;
-            if (enData.birthDate)  enMetadata.birthDate  = enData.birthDate;
+            if (enData.voiceActor)   enMetadata.voiceActor   = enData.voiceActor;
+            if (enData.birthPlace)   enMetadata.birthPlace   = enData.birthPlace;
+            if (enData.birthDate)    enMetadata.birthDate    = enData.birthDate;
+            if (enData.causeOfDeath) enMetadata.causeOfDeath = enData.causeOfDeath;
             if (enData.familyNames.length > 0) {
                 const src = (cleanMetadata.family as LinkedItem[]) || [];
                 enMetadata.family = enData.familyNames.map((name, i) => ({ name, slug: src[i]?.slug }));
@@ -659,6 +666,14 @@ export const ArticleEditor = () => {
                                     value={enData.birthPlace} placeholder="English birth place..."
                                     onChange={e => setEnData(prev => ({ ...prev, birthPlace: e.target.value }))} />
                             </div>
+                            {metadata.status === 'Deceased' && (
+                                <div className="col-span-full">
+                                    <label className="text-xs text-red-400 uppercase font-bold">☠️ {t('article.cause_of_death')} (EN)</label>
+                                    <input className="w-full bg-slate-900 p-2 rounded border border-slate-600 mt-1 text-sm focus:border-cyan-500 outline-none"
+                                        value={enData.causeOfDeath} placeholder="English cause of death..."
+                                        onChange={e => setEnData(prev => ({ ...prev, causeOfDeath: e.target.value }))} />
+                                </div>
+                            )}
                             {enData.familyNames.length > 0 && (
                                 <div className="col-span-full">
                                     <label className="text-xs text-slate-400 uppercase font-bold">{t('article.family')} (EN)</label>

@@ -43,16 +43,17 @@ public class TranslateController(ITranslationService translationService) : Contr
             var tl = dto.TargetLang;
 
             // Translate fields sequentially to avoid hammering the rate limit
-            var title      = await TranslateOrEmpty(dto.Title, sl, tl, ct);
-            var quote      = await TranslateOrNull(dto.Quote, sl, tl, ct);
-            var content    = await TranslateOrEmpty(dto.Content, sl, tl, ct);
-            var voiceActor = await TranslateOrNull(dto.VoiceActor, sl, tl, ct);
-            var birthPlace = await TranslateOrNull(dto.BirthPlace, sl, tl, ct);
-            var birthDate  = await TranslateOrNull(dto.BirthDate, sl, tl, ct);
-            var family     = await TranslateArray(dto.FamilyNames, sl, tl, ct);
-            var allies     = await TranslateArray(dto.AlliesNames, sl, tl, ct);
-            var enemies    = await TranslateArray(dto.EnemiesNames, sl, tl, ct);
-            var alsoKnownAs = await TranslateArray(dto.AlsoKnownAs, sl, tl, ct);
+            var title        = await TranslateOrEmpty(dto.Title, sl, tl, ct);
+            var quote        = await TranslateOrNull(dto.Quote, sl, tl, ct);
+            var content      = await TranslateOrEmpty(dto.Content, sl, tl, ct);
+            var voiceActor   = await TranslateOrNull(dto.VoiceActor, sl, tl, ct);
+            var birthPlace   = await TranslateOrNull(dto.BirthPlace, sl, tl, ct);
+            var birthDate    = await TranslateOrNull(dto.BirthDate, sl, tl, ct);
+            var causeOfDeath = await TranslateOrNull(dto.CauseOfDeath, sl, tl, ct);
+            var family       = await TranslateArray(dto.FamilyNames, sl, tl, ct);
+            var allies       = await TranslateArray(dto.AlliesNames, sl, tl, ct);
+            var enemies      = await TranslateArray(dto.EnemiesNames, sl, tl, ct);
+            var alsoKnownAs  = await TranslateArray(dto.AlsoKnownAs, sl, tl, ct);
 
             return Ok(new TranslateBatchResponseDto(
                 title,
@@ -61,6 +62,7 @@ public class TranslateController(ITranslationService translationService) : Contr
                 voiceActor,
                 birthPlace,
                 birthDate,
+                causeOfDeath,
                 family,
                 allies,
                 enemies,
