@@ -19,7 +19,10 @@ export const LoginPage = () => {
         setError('');
 
         try {
-            const response = await api.post('/Auth/login', formData);
+            const response = await api.post('/Auth/login', {
+                usernameOrEmail: formData.usernameOrEmail.trim(),
+                password: formData.password,
+            });
             login(response.data.token);
             navigate('/');
         } catch (err) {
@@ -54,6 +57,9 @@ export const LoginPage = () => {
                             placeholder={t('auth.username_or_email_placeholder')}
                             value={formData.usernameOrEmail}
                             onChange={e => setFormData({ ...formData, usernameOrEmail: e.target.value })}
+                            autoCapitalize="none"
+                            autoCorrect="off"
+                            spellCheck={false}
                             required
                         />
                     </div>

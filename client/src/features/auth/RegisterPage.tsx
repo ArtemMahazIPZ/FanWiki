@@ -33,7 +33,12 @@ export const RegisterPage = () => {
     const handleSubmitRegister = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            await api.post('/Auth/register', formData);
+            await api.post('/Auth/register', {
+                ...formData,
+                username: formData.username.trim(),
+                email:    formData.email.trim(),
+                nickname: formData.nickname.trim(),
+            });
             setStep(2);
         } catch (error: any) {
             const msg = extractApiError(error);
@@ -69,14 +74,21 @@ export const RegisterPage = () => {
                             placeholder={t('auth.username_placeholder_reg')}
                             value={formData.username}
                             onChange={e => setFormData({...formData, username: e.target.value})}
+                            autoCapitalize="none"
+                            autoCorrect="off"
+                            spellCheck={false}
                             required
                         />
 
                         <input
                             className="w-full bg-slate-800 p-3 rounded text-white border border-slate-700"
-                            placeholder={t('auth.email_placeholder')} type="email"
+                            placeholder={t('auth.email_placeholder')}
+                            type="email"
                             value={formData.email}
                             onChange={e => setFormData({...formData, email: e.target.value})}
+                            autoCapitalize="none"
+                            autoCorrect="off"
+                            spellCheck={false}
                             required
                         />
 

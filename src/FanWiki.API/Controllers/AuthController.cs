@@ -20,6 +20,10 @@ public class AuthController(
     [HttpPost("register")]
     public async Task<IActionResult> Register(RegisterDto dto)
     {
+        dto.Username = dto.Username.Trim();
+        dto.Email    = dto.Email.Trim();
+        dto.Nickname = dto.Nickname.Trim();
+
         var existingUser = await userManager.FindByEmailAsync(dto.Email);
         if (existingUser != null)
             return BadRequest(new { description = "User with this email already exists." });
@@ -53,6 +57,8 @@ public class AuthController(
     [HttpPost("verify-email")]
     public async Task<IActionResult> VerifyEmail(VerifyEmailDto dto)
     {
+        dto.Email = dto.Email.Trim();
+
         var user = await userManager.FindByEmailAsync(dto.Email);
         if (user == null) return BadRequest("User not found");
 
@@ -74,6 +80,8 @@ public class AuthController(
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginDto dto)
     {
+        dto.UsernameOrEmail = dto.UsernameOrEmail.Trim();
+
         var user = await userManager.FindByNameAsync(dto.UsernameOrEmail)
                    ?? await userManager.FindByEmailAsync(dto.UsernameOrEmail);
         if (user == null) return Unauthorized("Invalid username or email");
@@ -98,6 +106,8 @@ public class AuthController(
     [HttpPost("forgot-password")]
     public async Task<IActionResult> ForgotPassword(ForgotPasswordDto dto)
     {
+        dto.Email = dto.Email.Trim();
+
         var user = await userManager.FindByEmailAsync(dto.Email);
 
         // Always return 200 so we don't reveal whether the email exists
@@ -125,6 +135,8 @@ public class AuthController(
     [HttpPost("reset-password")]
     public async Task<IActionResult> ResetPassword(ResetPasswordDto dto)
     {
+        dto.Email = dto.Email.Trim();
+
         var user = await userManager.FindByEmailAsync(dto.Email);
         if (user == null) return BadRequest("Invalid request");
 
