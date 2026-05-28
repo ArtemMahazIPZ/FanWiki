@@ -402,6 +402,9 @@ export const ArticleEditor = () => {
             if (enData.quote) data.append('QuoteEn', enData.quote);
 
             const enMetadata = { ...cleanMetadata };
+            // causeOfDeath is locale-specific free text — must not inherit the UK value.
+            // It is only set here if an English translation was provided.
+            delete enMetadata.causeOfDeath;
             if (enData.voiceActor)   enMetadata.voiceActor   = enData.voiceActor;
             if (enData.birthPlace)   enMetadata.birthPlace   = enData.birthPlace;
             if (enData.birthDate)    enMetadata.birthDate    = enData.birthDate;

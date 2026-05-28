@@ -147,6 +147,18 @@ export const ArticlePage = () => {
     const [article, setArticle] = useState<Article | null>(null);
     const [meta, setMeta] = useState<ArticleMetadata>({});
 
+    // Normalize stored status values to English constants so i18n keys always resolve.
+    // Old articles may have Ukrainian status text saved directly in the JSON.
+    const normalizeStatusKey = (val?: string): string | undefined => {
+        if (!val) return undefined;
+        const map: Record<string, string> = {
+            'Мертвий': 'Deceased', 'Мертва': 'Deceased',
+            'Живий': 'Alive', 'Жива': 'Alive',
+            'Невідомо': 'Unknown',
+        };
+        return map[val] ?? val;
+    };
+
     const tv = (val?: string | number, gender?: string) => {
         if (!val) return undefined;
         if (gender === 'Female') {
@@ -196,16 +208,17 @@ export const ArticlePage = () => {
 
     const renderSidePanelInfo = () => {
         switch (article.category) {
-            case 'Character':
+            case 'Character': {
+                const statusKey = normalizeStatusKey(meta.status);
                 return (
                     <>
                         <InfoRow
                             label={t('article.status')}
-                            value={tv(meta.status, meta.gender)}
-                            classNameColor={getStatusColor(meta.status)}
+                            value={tv(statusKey, meta.gender)}
+                            classNameColor={getStatusColor(statusKey)}
                         />
 
-                        {meta.status === 'Deceased' && meta.causeOfDeath && (
+                        {statusKey === 'Deceased' && meta.causeOfDeath && article.languageCode === i18n.language && (
                             <div className="flex justify-between items-center border-b border-red-900/30 pb-1 mt-2">
                                 <span className="font-bold text-red-400 text-xs uppercase flex items-center gap-1">
                                     ☠️ {t('article.cause_of_death')}
@@ -249,6 +262,7 @@ export const ArticlePage = () => {
                         <InfoList label={t('article.enemies')} items={meta.enemies} variant="danger" />
                     </>
                 );
+            }
             case 'Weapon':
                 return (
                     <>
