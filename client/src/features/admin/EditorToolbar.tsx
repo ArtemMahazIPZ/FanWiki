@@ -54,9 +54,7 @@ export const EditorToolbar = ({ editor, className }: EditorToolbarProps) => {
         formData.append('file', file);
 
         try {
-            const res = await api.post('/Wiki/upload-image', formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
+            const res = await api.post('/Wiki/upload-image', formData);
             editor.chain().focus().setImage({ src: res.data.url }).run();
         } catch (error) {
             alert(t('editor.image_upload_error'));
@@ -99,7 +97,7 @@ export const EditorToolbar = ({ editor, className }: EditorToolbarProps) => {
                 type="file"
                 ref={fileInputRef}
                 className="hidden"
-                accept="image/*"
+                accept="image/jpeg,image/png,image/webp,image/gif"
                 onChange={handleFileChange}
             />
 

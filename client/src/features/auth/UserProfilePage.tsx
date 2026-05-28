@@ -14,7 +14,8 @@ export const UserProfilePage = () => {
     const [preview, setPreview] = useState<string | null>(null);
     const [avatarLoading, setAvatarLoading] = useState(false);
 
-    const MAX_AVATAR_SIZE = 8 * 1024 * 1024; // 8 MB hard limit
+    const MAX_AVATAR_SIZE = 5 * 1024 * 1024; // 5 MB hard limit
+    const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
     const [nickname, setNickname] = useState('');
     const [profileLoading, setProfileLoading] = useState(false);
@@ -34,6 +35,12 @@ export const UserProfilePage = () => {
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const selectedFile = e.target.files?.[0];
         if (!selectedFile) return;
+
+        if (!ALLOWED_MIME_TYPES.includes(selectedFile.type)) {
+            alert(t('profile.file_unsupported'));
+            e.target.value = '';
+            return;
+        }
 
         if (selectedFile.size > MAX_AVATAR_SIZE) {
             alert(t('profile.file_too_large'));
@@ -61,9 +68,10 @@ export const UserProfilePage = () => {
         formData.append('file', file);
 
         try {
-            const res = await api.post('/Account/avatar', formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
+            // Do NOT set Content-Type manually — the browser must add the multipart
+            // boundary automatically. Forcing it strips the boundary and breaks
+            // iOS Safari's multipart parser.
+            const res = await api.post('/Account/avatar', formData);
 
             if (res.data.token) {
                 login(res.data.token);
@@ -133,7 +141,7 @@ export const UserProfilePage = () => {
                         />
                         <label className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition cursor-pointer text-white font-bold text-sm">
                             {t('profile.upload_avatar')}
-                            <input type="file" className="hidden" accept="image/*" onChange={handleFileChange} />
+                            <input type="file" className="hidden" accept="image/jpeg,image/png,image/webp,image/gif" onChange={handleFileChange} />
                         </label>
                     </div>
 
