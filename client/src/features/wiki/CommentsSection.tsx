@@ -99,46 +99,40 @@ export const CommentsSection = ({ articleId }: { articleId: string }) => {
 
             <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
-                    <span className={`font-bold text-base ${c.isDeleted ? 'text-slate-500' : 'text-emerald-400'}`}>
-                        {c.user.nickname}
-                    </span>
+                    <span className="font-bold text-base text-emerald-400">{c.user.nickname}</span>
                     <span className="text-xs text-slate-500 font-medium">
                         {new Date(c.createdAt).toLocaleDateString()}
                     </span>
                 </div>
 
-                <div className={`text-slate-300 text-sm leading-relaxed mb-3 ${c.isDeleted && 'italic opacity-60 py-2'}`}>
-                    {c.isDeleted ? t('comments.deleted_message') : c.content}
+                <div className="text-slate-300 text-sm leading-relaxed mb-3">{c.content}</div>
+
+                <div className="flex items-center gap-5 text-xs font-medium text-slate-400 transition-colors">
+                    <button onClick={() => handleReact(c.id, true)} className="flex items-center gap-1.5 hover:text-emerald-400 transition group">
+                        <ThumbsUp size={14} className="group-hover:scale-110 transition-transform" /> {c.likes}
+                    </button>
+                    <button onClick={() => handleReact(c.id, false)} className="flex items-center gap-1.5 hover:text-red-400 transition group">
+                        <ThumbsDown size={14} className="group-hover:scale-110 transition-transform" /> {c.dislikes}
+                    </button>
+
+                    {user && (
+                        <button onClick={() => setReplyTo(replyTo === c.id ? null : c.id)} className={`flex items-center gap-1.5 transition hover:text-white ${replyTo === c.id ? 'text-emerald-400' : ''}`}>
+                            <CornerDownRight size={14} /> {t('comments.reply')}
+                        </button>
+                    )}
+
+                    {(user?.role === 'Admin' || user?.id === c.user.id) && (
+                        <button onClick={() => handleDelete(c.id, c.user.id)} className="text-slate-500 hover:text-red-500 transition ml-auto">
+                            <Trash2 size={14} />
+                        </button>
+                    )}
+
+                    {user?.role === 'Admin' && (
+                        <button onClick={() => handleBan(c.user.id)} className="text-slate-500 hover:text-orange-500 transition flex items-center gap-1">
+                            <Ban size={14} />
+                        </button>
+                    )}
                 </div>
-
-                {!c.isDeleted && (
-                    <div className="flex items-center gap-5 text-xs font-medium text-slate-400 transition-colors">
-                        <button onClick={() => handleReact(c.id, true)} className="flex items-center gap-1.5 hover:text-emerald-400 transition group">
-                            <ThumbsUp size={14} className="group-hover:scale-110 transition-transform" /> {c.likes}
-                        </button>
-                        <button onClick={() => handleReact(c.id, false)} className="flex items-center gap-1.5 hover:text-red-400 transition group">
-                            <ThumbsDown size={14} className="group-hover:scale-110 transition-transform" /> {c.dislikes}
-                        </button>
-
-                        {user && (
-                            <button onClick={() => setReplyTo(replyTo === c.id ? null : c.id)} className={`flex items-center gap-1.5 transition hover:text-white ${replyTo === c.id ? 'text-emerald-400' : ''}`}>
-                                <CornerDownRight size={14} /> {t('comments.reply')}
-                            </button>
-                        )}
-
-                        {(user?.role === 'Admin' || user?.id === c.user.id) && (
-                            <button onClick={() => handleDelete(c.id, c.user.id)} className="text-slate-500 hover:text-red-500 transition ml-auto">
-                                <Trash2 size={14} />
-                            </button>
-                        )}
-
-                        {user?.role === 'Admin' && (
-                            <button onClick={() => handleBan(c.user.id)} className="text-slate-500 hover:text-orange-500 transition flex items-center gap-1">
-                                <Ban size={14} />
-                            </button>
-                        )}
-                    </div>
-                )}
 
                 {replyTo === c.id && (
                     <div className="mt-4 flex gap-3 animate-in fade-in slide-in-from-top-2 duration-200">
@@ -158,7 +152,7 @@ export const CommentsSection = ({ articleId }: { articleId: string }) => {
                 )}
 
                 <div className="mt-4 space-y-4">
-                    {c.replies?.map(r => renderComment(r, true))}
+                    {c.replies?.filter(r => !r.isDeleted).map(r => renderComment(r, true))}
                 </div>
             </div>
         </div>
@@ -169,7 +163,7 @@ export const CommentsSection = ({ articleId }: { articleId: string }) => {
             <h3 className="text-2xl font-bold text-white mb-8 flex items-center gap-3">
                 {t('comments.title')}
                 <span className="text-lg text-slate-500 font-medium bg-slate-900 px-3 py-0.5 rounded-full">
-                    {comments.length}
+                    {comments.filter(c => !c.isDeleted).length}
                 </span>
             </h3>
 
@@ -210,7 +204,7 @@ export const CommentsSection = ({ articleId }: { articleId: string }) => {
             )}
 
             <div className="space-y-2">
-                {comments.map(c => renderComment(c))}
+                {comments.filter(c => !c.isDeleted).map(c => renderComment(c))}
             </div>
         </div>
     );

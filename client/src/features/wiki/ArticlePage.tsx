@@ -175,7 +175,10 @@ export const ArticlePage = () => {
     };
 
     useEffect(() => {
-        api.get<Article>(`/Wiki/${slug}?lang=${i18n.language}`).then(res => {
+        // Normalize to 2-char code: browser may report 'en-US' or 'uk-UA' which
+        // the backend doesn't recognise, causing it to fall back to the wrong locale.
+        const lang = i18n.language.split('-')[0];
+        api.get<Article>(`/Wiki/${slug}?lang=${lang}`).then(res => {
             setArticle(res.data);
             if (res.data.metadata) {
                 try {

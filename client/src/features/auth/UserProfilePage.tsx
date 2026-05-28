@@ -14,6 +14,8 @@ export const UserProfilePage = () => {
     const [preview, setPreview] = useState<string | null>(null);
     const [avatarLoading, setAvatarLoading] = useState(false);
 
+    const MAX_AVATAR_SIZE = 8 * 1024 * 1024; // 8 MB hard limit
+
     const [nickname, setNickname] = useState('');
     const [profileLoading, setProfileLoading] = useState(false);
 
@@ -22,16 +24,33 @@ export const UserProfilePage = () => {
     const [deleteLoading, setDeleteLoading] = useState(false);
 
     useEffect(() => {
-        if (user) {
-            setNickname(user.nickname);
-        }
+        if (user) setNickname(user.nickname);
     }, [user]);
 
+    useEffect(() => {
+        return () => { if (preview) URL.revokeObjectURL(preview); };
+    }, [preview]);
+
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            const selectedFile = e.target.files[0];
+        const selectedFile = e.target.files?.[0];
+        if (!selectedFile) return;
+
+        if (selectedFile.size > MAX_AVATAR_SIZE) {
+            alert(t('profile.file_too_large'));
+            e.target.value = '';
+            return;
+        }
+
+        // Revoke any previous object URL to avoid memory leaks.
+        if (preview) URL.revokeObjectURL(preview);
+
+        try {
             setFile(selectedFile);
             setPreview(URL.createObjectURL(selectedFile));
+        } catch {
+            setFile(null);
+            setPreview(null);
+            alert(t('profile.avatar_error'));
         }
     };
 
