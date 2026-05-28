@@ -84,7 +84,16 @@ public class AuthController(
 
         var user = await userManager.FindByNameAsync(dto.UsernameOrEmail)
                    ?? await userManager.FindByEmailAsync(dto.UsernameOrEmail);
+        
         if (user == null) return Unauthorized("Invalid username or email");
+
+        bool isExactUsername = user.UserName!.Equals(dto.UsernameOrEmail, StringComparison.Ordinal);
+        bool isExactEmail = user.Email!.Equals(dto.UsernameOrEmail, StringComparison.Ordinal);
+
+        if (!isExactUsername && !isExactEmail)
+        {
+            return Unauthorized("Invalid username or email. Case does not match.");
+        }
 
         if (!user.EmailConfirmed)
             return Unauthorized("Please confirm your email address before logging in.");
@@ -110,11 +119,9 @@ public class AuthController(
 
         var user = await userManager.FindByEmailAsync(dto.Email);
 
-        // Always return 200 so we don't reveal whether the email exists
         if (user == null)
             return Ok(new { message = "If your email exists in our system, we have sent a reset code." });
 
-        // Replace any existing reset code
         var existingClaims = await userManager.GetClaimsAsync(user);
         var existing = existingClaims.FirstOrDefault(c => c.Type == "PasswordResetCode");
         if (existing != null)
