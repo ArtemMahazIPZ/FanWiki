@@ -9,8 +9,6 @@ import { CommentsSection } from './CommentsSection';
 /**
  * Promotes bare <img data-caption="…"> tags to <figure><img><figcaption> structure.
  * Leaves images that are already inside <figure> untouched.
- * This handles both newly-saved content (where CustomImage.renderHTML now outputs
- * figure/figcaption correctly) and any older rows that have data-caption on the img.
  */
 function processArticleHtml(html: string): string {
     if (!html) return html;
@@ -18,8 +16,6 @@ function processArticleHtml(html: string): string {
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
 
-    // Convert <img data-caption="…"> → <figure><img><figcaption>
-    // Images are NOT already wrapped in a <figure> (new renderHTML stores data-caption on img).
     doc.querySelectorAll<HTMLImageElement>('img[data-caption]').forEach((img) => {
         if (img.closest('figure')) return;
 
@@ -44,9 +40,6 @@ function processArticleHtml(html: string): string {
         figcaption.textContent = caption;
         figure.appendChild(figcaption);
 
-        // If the img sits inside a <p>, place the figure after the <p> so that
-        // a block-level <figure> is never nested inside an inline <p> (invalid HTML
-        // that browsers repair unpredictably, which was causing the display artefact).
         const parent = img.parentElement;
         if (parent?.tagName === 'P') {
             parent.insertAdjacentElement('afterend', figure);
@@ -59,9 +52,6 @@ function processArticleHtml(html: string): string {
         }
     });
 
-    // Also hoist any <figure> elements that are still inside <p> tags
-    // (content saved before this fix had renderHTML wrap images in <figure>
-    //  which ended up nested in TipTap's paragraph — this fixes those rows).
     doc.querySelectorAll<HTMLElement>('p > figure').forEach((figure) => {
         const p = figure.parentElement!;
         p.insertAdjacentElement('afterend', figure);
@@ -72,7 +62,6 @@ function processArticleHtml(html: string): string {
 
     return doc.body.innerHTML;
 }
-
 
 interface LinkedItem { name: string; slug?: string; }
 
@@ -86,7 +75,7 @@ interface ArticleMetadata {
     enemies?: (string | LinkedItem)[];
     alsoKnownAs?: string[];
     birthDate?: string;
-    birthYear?: string | number; // legacy field — display as birthDate fallback
+    birthYear?: string | number;
     birthPlace?: string;
     age?: string | number;
 
@@ -147,8 +136,6 @@ export const ArticlePage = () => {
     const [article, setArticle] = useState<Article | null>(null);
     const [meta, setMeta] = useState<ArticleMetadata>({});
 
-    // Normalize stored status values to English constants so i18n keys always resolve.
-    // Old articles may have Ukrainian status text saved directly in the JSON.
     const normalizeStatusKey = (val?: string): string | undefined => {
         if (!val) return undefined;
         const map: Record<string, string> = {
@@ -161,16 +148,30 @@ export const ArticlePage = () => {
 
     const tv = (val?: string | number, gender?: string) => {
         if (!val) return undefined;
-        if (gender === 'Female') {
-            const femaleKey = `meta_values.${val}_Female`;
-            // Only use the gender-specific form if it actually exists in the active
-            // language. Without this guard i18next falls back to the Ukrainian locale
-            // and returns 'Мертва' / 'Жива' even when the UI language is English.
-            if (i18n.exists(femaleKey, { lng: i18n.language })) {
-                return t(femaleKey);
-            }
+
+        const key = normalizeStatusKey(val.toString()) || val.toString();
+
+        if (i18n.language === 'en') {
+            return t(`meta_values.${key}`, { defaultValue: key });
         }
-        return t(`meta_values.${val}`, { defaultValue: val.toString() });
+
+        if (gender === 'Female') {
+            if (key === 'Alive') return 'Жива';
+            if (key === 'Deceased') return 'Мертва';
+            if (key === 'Unknown') return 'Невідомо';
+            if (key === 'Positive') return 'Позитивна';
+            if (key === 'Negative') return 'Негативна';
+            if (key === 'Neutral') return 'Нейтральна';
+        }
+
+        if (key === 'Alive') return 'Живий';
+        if (key === 'Deceased') return 'Мертвий';
+        if (key === 'Unknown') return 'Невідомо';
+        if (key === 'Positive') return 'Позитивний';
+        if (key === 'Negative') return 'Негативний';
+        if (key === 'Neutral') return 'Нейтральний';
+
+        return t(`meta_values.${key}`, { defaultValue: key });
     };
 
     useEffect(() => {
@@ -348,7 +349,7 @@ export const ArticlePage = () => {
 
                 <div className="lg:col-span-1 order-1 lg:order-2">
                     <div className="bg-slate-900 border border-slate-700 rounded-xl overflow-hidden shadow-2xl sticky top-24">
-                        <div className="bg-gradient-to-r from-emerald-900/80 to-slate-900 p-4 text-center font-bold text-emerald-100 border-b border-slate-700 tracking-wide uppercase text-sm break-words">
+                        <div className="bg-linear-to-r from-emerald-900/80 to-slate-900 p-4 text-center font-bold text-emerald-100 border-b border-slate-700 tracking-wide uppercase text-sm break-words">
                             {article.title}
                         </div>
                         <div className="p-3 bg-slate-950">
@@ -356,7 +357,7 @@ export const ArticlePage = () => {
                                 <img
                                     src={article.imageUrl}
                                     alt={article.title}
-                                    className="w-full rounded-lg border border-slate-800 object-cover aspect-[3/4] shadow-inner"
+                                    className="w-full rounded-lg border border-slate-800 object-cover aspect-3/4 shadow-inner"
                                 />
                             ) : (
                                 <div className="h-64 bg-slate-800 flex items-center justify-center text-slate-500 text-sm italic">No Portrait</div>
