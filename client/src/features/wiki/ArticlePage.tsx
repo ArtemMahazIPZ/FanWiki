@@ -163,8 +163,12 @@ export const ArticlePage = () => {
         if (!val) return undefined;
         if (gender === 'Female') {
             const femaleKey = `meta_values.${val}_Female`;
-            const femaleVal = t(femaleKey, { defaultValue: '' });
-            if (femaleVal) return femaleVal;
+            // Only use the gender-specific form if it actually exists in the active
+            // language. Without this guard i18next falls back to the Ukrainian locale
+            // and returns 'Мертва' / 'Жива' even when the UI language is English.
+            if (i18n.exists(femaleKey, { lng: i18n.language })) {
+                return t(femaleKey);
+            }
         }
         return t(`meta_values.${val}`, { defaultValue: val.toString() });
     };
