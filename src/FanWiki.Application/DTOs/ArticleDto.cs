@@ -31,9 +31,6 @@ public class CreateArticleDto
 
     public IFormFile? Image { get; set; }
     public string? Metadata { get; set; }
-
-    // Optional pre-translated English fields. When provided alongside a non-English
-    // LanguageCode, the service will upsert a second "en" translation automatically.
     public string? TitleEn { get; set; }
     public string? ContentEn { get; set; }
     public string? QuoteEn { get; set; }

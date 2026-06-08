@@ -19,7 +19,6 @@ public class SmtpEmailSender(ILogger<SmtpEmailSender> logger) : IEmailSender
             string.IsNullOrWhiteSpace(_user) ||
             string.IsNullOrWhiteSpace(_pass))
         {
-            // No SMTP configured — fall back to console so development still works
             logger.LogWarning("SMTP is not configured. Set SMTP_HOST, SMTP_USER, SMTP_PASS, SMTP_PORT.");
             logger.LogInformation("---------------- EMAIL (no SMTP) ----------------");
             logger.LogInformation("To: {Email}", email);
@@ -42,7 +41,6 @@ public class SmtpEmailSender(ILogger<SmtpEmailSender> logger) : IEmailSender
         await client.DisconnectAsync(true);
     }
 
-    // ── Clean, minimal HTML email template ───────────────────────────────────
     private static string WrapInTemplate(string subject, string content) => $"""
         <!DOCTYPE html>
         <html lang="en">

@@ -31,7 +31,6 @@ public class GoogleTranslationService(
         return string.Concat(results);
     }
 
-    // ── HTML translation via batchexecute (rpcid: MkM2Zd) ────────────────────
 
     private static bool LooksLikeHtml(string text) =>
         text.TrimStart().StartsWith('<');
@@ -51,8 +50,7 @@ public class GoogleTranslationService(
     private async Task<string> TranslateHtmlSingleAsync(string html, string sl, string tl, CancellationToken ct)
     {
         var client = httpClientFactory.CreateClient("GoogleTranslate");
-
-        // f.req: [[["MkM2Zd","[[\"html\",\"sl\",\"tl\"]]",null,"generic"]]]
+        
         var innerPayload = JsonSerializer.Serialize(new[] { new object[] { html, sl, tl } });
         var fReq = JsonSerializer.Serialize(
             new[] { new[] { new object?[] { "MkM2Zd", innerPayload, null, "generic" } } });
@@ -95,24 +93,19 @@ public class GoogleTranslationService(
 
     private static string ParseBatchExecuteResponse(string raw)
     {
-        // Response starts with ")]}'" followed by newlines, then a JSON array.
         var jsonStart = raw.IndexOf('[');
         if (jsonStart < 0) throw new InvalidOperationException("No JSON array found in batchexecute response.");
 
         using var doc = JsonDocument.Parse(raw[jsonStart..]);
 
-        // Structure: [[["wrb.fr","MkM2Zd","<inner_json>",...]],...]
         var innerJsonStr = doc.RootElement[0][0][2].GetString()
             ?? throw new InvalidOperationException("Missing inner JSON in batchexecute response.");
 
         using var inner = JsonDocument.Parse(innerJsonStr);
-        // Inner: [["<translated_html>","sl","tl",null,[...]]]
         return inner.RootElement[0][0].GetString()
             ?? throw new InvalidOperationException("Missing translated HTML in batchexecute inner response.");
     }
-
-    // ── Plain-text translation ────────────────────────────────────────────────
-
+    
     private async Task<string> TranslatePlainSingleAsync(string text, string sl, string tl, CancellationToken ct)
     {
         var client = httpClientFactory.CreateClient("GoogleTranslate");
@@ -164,7 +157,6 @@ public class GoogleTranslationService(
         }
     }
 
-    // ── Chunking helpers ──────────────────────────────────────────────────────
 
     private static List<string> SplitHtmlAtBlockBoundaries(string html, int maxSize)
     {

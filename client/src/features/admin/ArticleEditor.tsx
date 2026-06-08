@@ -29,7 +29,7 @@ interface ArticleMetadata {
     enemies?: LinkedItem[];
     alsoKnownAs?: string[];
     birthDate?: string;
-    birthYear?: string | number; // kept for backward-compat with old data
+    birthYear?: string | number;
     birthPlace?: string;
     age?: string | number;
 
@@ -57,7 +57,6 @@ interface EnData {
     alsoKnownAs: string[];
 }
 
-// Shared Tiptap extension list used by both the primary and English editors.
 const buildExtensions = () => [
     StarterKit,
     TextStyle,
@@ -104,8 +103,6 @@ export const ArticleEditor = () => {
     const [linkingField, setLinkingField] = useState<ListField | null>(null);
     const [linkingIndex, setLinkingIndex] = useState<number | null>(null);
 
-    // EnData holds all English translation fields EXCEPT content,
-    // which is managed directly by the enEditor Tiptap instance.
     const [enData, setEnData] = useState<EnData>({
         title: '',
         quote: '',
@@ -124,7 +121,6 @@ export const ArticleEditor = () => {
     const [existingImage, setExistingImage] = useState<string | null>(null);
     const [file, setFile] = useState<File | null>(null);
 
-    // ── Primary (Ukrainian) editor ────────────────────────────────────────────
     const editor = useEditor({
         extensions: buildExtensions(),
         content: '',
@@ -134,19 +130,14 @@ export const ArticleEditor = () => {
         },
     });
 
-    // ── English WYSIWYG editor ────────────────────────────────────────────────
     const enEditor = useEditor({
         extensions: buildExtensions(),
         content: '',
         editorProps: { attributes: { class: editorBaseClass + ' min-h-[200px]' } },
-        // No need to sync to state — we read getHTML() at submit time.
     });
 
-    // ── Load article data in edit mode ────────────────────────────────────────
     useEffect(() => {
         if (isEdit && id) {
-            // Always load the article in its original (Ukrainian) language for the
-            // primary editing section, regardless of the current interface language.
             api.get<Article>(`/Wiki/${id}?lang=uk`).then(res => {
                 const data = res.data;
                 setFormData({
@@ -179,7 +170,6 @@ export const ArticleEditor = () => {
                 editor?.commands.setContent(data.content);
             });
 
-            // Pre-load the English translation if one already exists.
             api.get<Article>(`/Wiki/${id}?lang=en`).then(res => {
                 if (res.data.languageCode !== 'en') return;
 
@@ -205,18 +195,15 @@ export const ArticleEditor = () => {
                     enemiesNames: enEnemies.map(x => x.name),
                     alsoKnownAs:  (enMeta.alsoKnownAs as string[]) || []
                 });
-                // Load the translated HTML directly into the English editor.
                 enEditor?.commands.setContent(res.data.content);
             }).catch(() => { /* no English translation yet */ });
         }
     }, [id, isEdit, editor, enEditor, i18n.language]);
 
-    // ── Auto-translate ────────────────────────────────────────────────────────
     const handleAutoTranslate = async () => {
         setTranslateError(null);
         setIsTranslating(true);
         try {
-            // Send the full HTML so the backend can preserve formatting tags.
             const htmlContent  = editor?.getHTML() || formData.content;
             const familyNames  = ((metadata.family  as LinkedItem[]) || []).map(x => x.name).filter(Boolean);
             const alliesNames  = ((metadata.allies  as LinkedItem[]) || []).map(x => x.name).filter(Boolean);
@@ -251,7 +238,6 @@ export const ArticleEditor = () => {
                 targetLang: 'en'
             });
 
-            // Load translated HTML into the English Tiptap editor.
             enEditor?.commands.setContent(res.data.content);
 
             setEnData({
@@ -282,7 +268,6 @@ export const ArticleEditor = () => {
         }
     };
 
-    // ── Metadata / list helpers ───────────────────────────────────────────────
     const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const newCategory = e.target.value;
         setFormData({ ...formData, category: newCategory });
@@ -367,7 +352,6 @@ export const ArticleEditor = () => {
         );
     };
 
-    // ── Submit ────────────────────────────────────────────────────────────────
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -386,13 +370,11 @@ export const ArticleEditor = () => {
         if (cleanMetadata.allies)     cleanMetadata.allies     = (cleanMetadata.allies     as LinkedItem[]).filter(x => x.name.trim() !== '');
         if (cleanMetadata.enemies)    cleanMetadata.enemies    = (cleanMetadata.enemies    as LinkedItem[]).filter(x => x.name.trim() !== '');
         if (cleanMetadata.alsoKnownAs) cleanMetadata.alsoKnownAs = (cleanMetadata.alsoKnownAs as string[]).filter(x => x.trim() !== '');
-        delete cleanMetadata.birthYear; // removed: birthDate is canonical now
+        delete cleanMetadata.birthYear;
 
         data.append('Metadata', JSON.stringify(cleanMetadata));
         if (file) data.append('Image', file);
 
-        // Include the English translation whenever EN data is present,
-        // regardless of the current interface language.
         const enContent = enEditor?.getHTML() || '';
         const hasEnContent = enData.title.trim() !== '' && enContent.replace(/<[^>]*>/g, '').trim() !== '';
 
@@ -402,8 +384,6 @@ export const ArticleEditor = () => {
             if (enData.quote) data.append('QuoteEn', enData.quote);
 
             const enMetadata = { ...cleanMetadata };
-            // causeOfDeath is locale-specific free text — must not inherit the UK value.
-            // It is only set here if an English translation was provided.
             delete enMetadata.causeOfDeath;
             if (enData.voiceActor)   enMetadata.voiceActor   = enData.voiceActor;
             if (enData.birthPlace)   enMetadata.birthPlace   = enData.birthPlace;
@@ -436,7 +416,6 @@ export const ArticleEditor = () => {
         }
     };
 
-    // ── Metadata fields renderer ──────────────────────────────────────────────
     const renderMetadataInputs = () => {
         switch (formData.category) {
             case 'Character':
@@ -533,10 +512,9 @@ export const ArticleEditor = () => {
         }
     };
 
-    // ── Render ────────────────────────────────────────────────────────────────
     return (
         <div className="max-w-5xl mx-auto p-6 mt-4 pb-20">
-            <h1 className="text-3xl font-bold mb-8 text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-500">
+            <h1 className="text-3xl font-bold mb-8 text-transparent bg-clip-text bg-linear-to-r from-emerald-400 to-cyan-500">
                 {isEdit ? t('article.edit') : t('editor.create_article')}
             </h1>
 

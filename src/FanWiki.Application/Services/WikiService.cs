@@ -1,6 +1,6 @@
-﻿using FanWiki.Application.DTOs;
+using FanWiki.Application.DTOs;
 using FanWiki.Domain.Entities;
-using FanWiki.Domain.Enums; 
+using FanWiki.Domain.Enums;
 using FanWiki.Domain.Interfaces;
 
 namespace FanWiki.Application.Services;
@@ -12,7 +12,7 @@ public class WikiService(IArticleRepository repository) : IWikiService
         var article = await repository.GetBySlugAsync(slug, ct);
         if (article is null) return null;
 
-        var translation = article.Translations.FirstOrDefault(t => t.LanguageCode == languageCode) 
+        var translation = article.Translations.FirstOrDefault(t => t.LanguageCode == languageCode)
                           ?? article.Translations.FirstOrDefault();
 
         if (translation is null) return null;
@@ -68,7 +68,7 @@ public class WikiService(IArticleRepository repository) : IWikiService
         CancellationToken ct)
     {
         var articles = await repository.GetAllAsync(ct);
-        
+
         if (!string.IsNullOrEmpty(category) && category != "All")
         {
             if (Enum.TryParse<ArticleCategory>(category, true, out var catEnum))
@@ -96,7 +96,7 @@ public class WikiService(IArticleRepository repository) : IWikiService
 
         foreach (var article in articles)
         {
-            var translation = article.Translations.FirstOrDefault(t => t.LanguageCode == languageCode) 
+            var translation = article.Translations.FirstOrDefault(t => t.LanguageCode == languageCode)
                               ?? article.Translations.FirstOrDefault();
 
             if (translation == null) continue;
@@ -117,14 +117,9 @@ public class WikiService(IArticleRepository repository) : IWikiService
             ));
         }
 
-        if (sort == "za")
-        {
-            dtos = dtos.OrderByDescending(d => d.Title).ToList();
-        }
-        else
-        {
-            dtos = dtos.OrderBy(d => d.Title).ToList();
-        }
+        dtos = sort == "za"
+            ? dtos.OrderByDescending(d => d.Title).ToList()
+            : dtos.OrderBy(d => d.Title).ToList();
 
         return dtos;
     }
@@ -133,7 +128,7 @@ public class WikiService(IArticleRepository repository) : IWikiService
     {
         if (!Enum.TryParse<ArticleCategory>(dto.Category, true, out var categoryEnum))
         {
-            categoryEnum = ArticleCategory.Character; 
+            categoryEnum = ArticleCategory.Character;
         }
 
         CharacterAlignment? alignmentEnum = null;
@@ -182,7 +177,7 @@ public class WikiService(IArticleRepository repository) : IWikiService
         await repository.AddAsync(article, ct);
         await repository.SaveChangesAsync(ct);
         return article.Id;
-    } 
+    }
 
     public async Task UpdateArticleAsync(Guid id, CreateArticleDto dto, string? imagePath, CancellationToken ct)
     {
@@ -196,16 +191,16 @@ public class WikiService(IArticleRepository repository) : IWikiService
         {
             article.Category = categoryEnum;
         }
-        
+
         if (!string.IsNullOrEmpty(dto.Alignment) && Enum.TryParse<CharacterAlignment>(dto.Alignment, true, out var alignEnum))
         {
             article.Alignment = alignEnum;
         }
-        else if (string.IsNullOrEmpty(dto.Alignment)) 
+        else if (string.IsNullOrEmpty(dto.Alignment))
         {
-            article.Alignment = null; 
+            article.Alignment = null;
         }
-        
+
         if (!string.IsNullOrEmpty(imagePath))
         {
             article.ImageUrl = imagePath;

@@ -97,41 +97,35 @@ public class AccountController(
         if (!await userManager.CheckPasswordAsync(user, dto.Password))
             return BadRequest("Incorrect password");
 
-        // Remove reactions the user gave to other comments
         var userReactions = await db.CommentReactions
             .Where(r => r.UserId == user.Id)
             .ToListAsync();
         db.CommentReactions.RemoveRange(userReactions);
         await db.SaveChangesAsync();
 
-        // Collect IDs of the user's own comments
         var userCommentIds = await db.Comments
             .Where(c => c.UserId == user.Id)
             .Select(c => c.Id)
             .ToListAsync();
 
-        // Remove reactions on the user's comments
         var onUserComments = await db.CommentReactions
             .Where(r => userCommentIds.Contains(r.CommentId))
             .ToListAsync();
         db.CommentReactions.RemoveRange(onUserComments);
         await db.SaveChangesAsync();
 
-        // Detach replies by other users so they become top-level
         var orphanedReplies = await db.Comments
             .Where(c => c.ParentId.HasValue && userCommentIds.Contains(c.ParentId.Value))
             .ToListAsync();
         foreach (var reply in orphanedReplies) reply.ParentId = null;
         await db.SaveChangesAsync();
 
-        // Delete the user's own comments
         var userComments = await db.Comments
             .Where(c => c.UserId == user.Id)
             .ToListAsync();
         db.Comments.RemoveRange(userComments);
         await db.SaveChangesAsync();
 
-        // Finally delete the account
         var result = await userManager.DeleteAsync(user);
         if (!result.Succeeded)
             return StatusCode(500, result.Errors);

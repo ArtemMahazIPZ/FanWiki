@@ -75,12 +75,10 @@ public class DeepLTranslationService(
             ?? throw new InvalidOperationException("DeepL returned an empty translation result.");
     }
 
-    // DeepL requires "EN-US" or "EN-GB" as a target language; "EN" still works
-    // for Free tier but EN-US is explicit and future-proof.
+   
     private static string MapTargetLang(string lang) =>
         lang.ToLowerInvariant() == "en" ? "EN-US" : lang.ToUpperInvariant();
 
-    // ── DTOs ─────────────────────────────────────────────────────────────────
 
     private record DeepLRequest(
         [property: JsonPropertyName("text")]

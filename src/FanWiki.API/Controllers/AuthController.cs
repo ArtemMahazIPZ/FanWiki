@@ -153,10 +153,8 @@ public class AuthController(
         if (storedCode == null || storedCode != dto.Code)
             return BadRequest("Invalid or expired reset code");
 
-        // Consume the code so it cannot be reused
         await userManager.RemoveClaimAsync(user, claims.First(c => c.Type == "PasswordResetCode"));
 
-        // Generate an internal token just to drive Identity's password-reset machinery
         var internalToken = await userManager.GeneratePasswordResetTokenAsync(user);
         var result = await userManager.ResetPasswordAsync(user, internalToken, dto.NewPassword);
 
