@@ -117,6 +117,7 @@ const resources = {
                 "ban_cancel": "Cancel",
                 "ban_button": "Ban",
                 "ban_forever": "Forever",
+                "unban_button": "Unban",
             },
             "admin": {
                 "dashboard_title": "Admin Dashboard",
@@ -371,6 +372,7 @@ const resources = {
                 "ban_cancel": "Скасувати",
                 "ban_button": "Забанити",
                 "ban_forever": "Назавжди",
+                "unban_button": "Розбанити",
             },
             "admin": {
                 "dashboard_title": "Панель Адміністратора",

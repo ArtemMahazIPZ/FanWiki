@@ -12,7 +12,7 @@ interface Comment {
     content: string;
     createdAt: string;
     isDeleted: boolean;
-    user: { id: string; nickname: string; avatarUrl?: string };
+    user: { id: string; nickname: string; avatarUrl?: string; isBanned: boolean };
     likes: number;
     dislikes: number;
     replies: Comment[];
@@ -113,6 +113,11 @@ export const CommentsSection = ({ articleId }: { articleId: string }) => {
         setBanModal(userId);
     };
 
+    const handleUnban = async (userId: string) => {
+        await api.delete(`/Comments/ban/${userId}`);
+        loadComments();
+    };
+
     const submitBan = async () => {
         if (!banModal) return;
         const params = new URLSearchParams({ minutes: banDuration });
@@ -161,10 +166,14 @@ export const CommentsSection = ({ articleId }: { articleId: string }) => {
                         </button>
                     )}
 
-                    {user?.role === 'Admin' && (
-                        <button onClick={() => handleBan(c.user.id)} className="text-slate-500 hover:text-orange-500 transition flex items-center gap-1">
-                            <Ban size={14} />
-                        </button>
+                    {user?.role === 'Admin' && user.id !== c.user.id && (
+                        c.user.isBanned
+                            ? <button onClick={() => handleUnban(c.user.id)} className="text-orange-400 hover:text-emerald-400 transition flex items-center gap-1" title={t('comments.unban_button')}>
+                                <Ban size={14} /> <span>{t('comments.unban_button')}</span>
+                              </button>
+                            : <button onClick={() => handleBan(c.user.id)} className="text-slate-500 hover:text-orange-500 transition flex items-center gap-1" title={t('comments.ban_button')}>
+                                <Ban size={14} />
+                              </button>
                     )}
                 </div>
 

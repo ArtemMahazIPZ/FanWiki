@@ -124,6 +124,20 @@ public class CommentsController(AppDbContext context, UserManager<ApplicationUse
         return Ok();
     }
 
+    [HttpDelete("ban/{userId}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> UnbanUser(string userId)
+    {
+        var user = await userManager.FindByIdAsync(userId);
+        if (user == null) return NotFound();
+
+        user.BanExpiresAt = null;
+        user.BanReason = null;
+        await userManager.UpdateAsync(user);
+
+        return Ok(new { message = "User unbanned" });
+    }
+
     [HttpPost("ban/{userId}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> BanUser(string userId, [FromQuery] int minutes, [FromQuery] string? reason)
@@ -146,7 +160,7 @@ public class CommentsController(AppDbContext context, UserManager<ApplicationUse
             c.Content,
             c.CreatedAt,
             c.IsDeleted,
-            User = new { c.User?.Nickname, c.User?.AvatarUrl, c.User?.Id },
+            User = new { c.User?.Nickname, c.User?.AvatarUrl, c.User?.Id, IsBanned = c.User?.BanExpiresAt > DateTime.UtcNow },
             Likes = c.Reactions.Count(r => r.IsLike),
             Dislikes = c.Reactions.Count(r => !r.IsLike),
             Replies = c.Replies.OrderBy(r => r.CreatedAt).Select(MapToDto).ToList()
