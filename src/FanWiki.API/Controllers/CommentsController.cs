@@ -37,12 +37,13 @@ public class CommentsController(AppDbContext context, UserManager<ApplicationUse
         var user = await userManager.GetUserAsync(User);
         if (user == null) return Unauthorized();
         
-        if (user.BanExpiresAt > DateTime.UtcNow) 
+        if (user.BanExpiresAt > DateTime.UtcNow)
         {
-            return StatusCode(403, new 
-            { 
-                message = "You are banned", 
-                expiresAt = user.BanExpiresAt 
+            return StatusCode(403, new
+            {
+                message = "You are banned",
+                banReason = user.BanReason,
+                expiresAt = user.BanExpiresAt
             });
         }
 
@@ -125,12 +126,13 @@ public class CommentsController(AppDbContext context, UserManager<ApplicationUse
 
     [HttpPost("ban/{userId}")]
     [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> BanUser(string userId, [FromQuery] int minutes)
+    public async Task<IActionResult> BanUser(string userId, [FromQuery] int minutes, [FromQuery] string? reason)
     {
         var user = await userManager.FindByIdAsync(userId);
         if (user == null) return NotFound();
 
         user.BanExpiresAt = DateTime.UtcNow.AddMinutes(minutes);
+        user.BanReason = reason;
         await userManager.UpdateAsync(user);
 
         return Ok(new { message = $"User banned until {user.BanExpiresAt}" });
